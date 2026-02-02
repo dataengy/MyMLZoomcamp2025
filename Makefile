@@ -10,7 +10,7 @@ format:
 	ruff format .
 
 test:
-	PYTHONPATH=src pytest -q
+	uv run pytest -q
 
 train:
 	PYTHONPATH=src python src/training/train.py
