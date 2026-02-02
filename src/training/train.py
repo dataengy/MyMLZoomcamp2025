@@ -1,20 +1,82 @@
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
+import pandas as pd
 
-def main() -> None:
-    """Placeholder training script until dataset/model are defined."""
-    models_dir = Path("models")
-    reports_dir = Path("reports")
-    models_dir.mkdir(parents=True, exist_ok=True)
-    reports_dir.mkdir(parents=True, exist_ok=True)
 
-    # Write placeholder artifacts so downstream wiring can be tested.
-    (models_dir / "model.joblib").write_text("placeholder model")
-    (reports_dir / "metrics.json").write_text(json.dumps({"status": "placeholder"}))
+def _infer_format(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix == ".parquet":
+        return "parquet"
+    if suffix == ".csv":
+        return "csv"
+    raise ValueError(f"Unsupported data format: {suffix}")
+
+
+def _load_data(path: Path) -> pd.DataFrame:
+    fmt = _infer_format(path)
+    if fmt == "parquet":
+        return pd.read_parquet(path)
+    if fmt == "csv":
+        return pd.read_csv(path)
+    raise ValueError(f"Unsupported data format: {fmt}")
+
+
+def train_mean_baseline(data_path: Path, target: str = "trip_duration") -> dict:
+    if not data_path.exists():
+        raise FileNotFoundError(f"Data file not found: {data_path}")
+
+    df = _load_data(data_path)
+    if target not in df.columns:
+        raise ValueError(f"Missing target column: {target}")
+
+    target_values = df[target]
+    mean_value = float(target_values.mean())
+    mae = float((target_values - mean_value).abs().mean())
+    rmse = float(((target_values - mean_value) ** 2).mean() ** 0.5)
+
+    return {
+        "model": {"type": "mean_baseline", "target": target, "target_mean": mean_value},
+        "metrics": {"mae": mae, "rmse": rmse, "samples": int(len(df))},
+        "features": [col for col in df.columns if col != target],
+    }
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Train a baseline model.")
+    parser.add_argument(
+        "--data",
+        type=Path,
+        default=Path("data/processed/processed_data.parquet"),
+        help="Path to processed data",
+    )
+    parser.add_argument(
+        "--model-out",
+        type=Path,
+        default=Path("models/model.json"),
+        help="Output path for model metadata",
+    )
+    parser.add_argument(
+        "--metrics-out",
+        type=Path,
+        default=Path("reports/metrics.json"),
+        help="Output path for training metrics",
+    )
+
+    args = parser.parse_args(argv)
+
+    result = train_mean_baseline(args.data)
+
+    args.model_out.parent.mkdir(parents=True, exist_ok=True)
+    args.metrics_out.parent.mkdir(parents=True, exist_ok=True)
+
+    args.model_out.write_text(json.dumps(result["model"], indent=2))
+    args.metrics_out.write_text(json.dumps(result["metrics"], indent=2))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

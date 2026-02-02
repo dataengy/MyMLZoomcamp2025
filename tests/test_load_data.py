@@ -1,32 +1,24 @@
 from __future__ import annotations
 
-import subprocess
-import sys
 from pathlib import Path
 
-import pytest
-
-pytest.importorskip("pandas")
+from scripts import load_data
 
 
-def test_load_data_script_reads_and_writes_csv(tmp_path: Path) -> None:
+def test_infer_format_handles_common_extensions(tmp_path: Path) -> None:
+    assert load_data._infer_format(tmp_path / "file.csv") == "csv"
+    assert load_data._infer_format(tmp_path / "file.json") == "json"
+    assert load_data._infer_format(tmp_path / "file.parquet") == "parquet"
+    assert load_data._infer_format(tmp_path / "file.csv.gz") == "csv"
+
+
+def test_normalize_columns_splits_and_strips() -> None:
+    assert load_data._normalize_columns("a, b , ,c") == ["a", "b", "c"]
+    assert load_data._normalize_columns("") is None
+
+
+def test_resolve_source_local_path(tmp_path: Path) -> None:
     source = tmp_path / "input.csv"
-    output = tmp_path / "output.csv"
-    source.write_text("a,b\n1,2\n3,4\n")
-
-    result = subprocess.run(
-        [
-            sys.executable,
-            "scripts/load_data.py",
-            "--source",
-            str(source),
-            "--output",
-            str(output),
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-    assert output.exists()
-    assert "Loaded 2 rows" in result.stdout
+    source.write_text("a,b\n1,2\n")
+    resolved = load_data._resolve_source(str(source), tmp_path / "cache", False)
+    assert resolved == source

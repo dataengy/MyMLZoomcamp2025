@@ -2,13 +2,17 @@
 from __future__ import annotations
 
 import argparse
-import shutil
+import sys
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-import pandas as pd
+if TYPE_CHECKING:
+    import pandas as pd
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CACHE_DIR = PROJECT_ROOT / "data" / "raw"
 
 
 def _is_url(value: str) -> bool:
@@ -38,7 +42,17 @@ def _download(url: str, dest: Path) -> Path:
     dest.parent.mkdir(parents=True, exist_ok=True)
     request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urlopen(request) as response, dest.open("wb") as f:
-        shutil.copyfileobj(response, f)
+        total = int(response.headers.get("Content-Length", 0))
+        downloaded = 0
+        chunk_size = 1024 * 1024
+        while True:
+            chunk = response.read(chunk_size)
+            if not chunk:
+                break
+            f.write(chunk)
+            downloaded += len(chunk)
+            _render_progress(downloaded, total)
+    _finish_progress(downloaded, total)
     return dest
 
 
@@ -49,7 +63,9 @@ def _resolve_source(source: str, cache_dir: Path, force_download: bool) -> Path:
             raise ValueError("URL must point to a file path")
         dest = cache_dir / filename
         if dest.exists() and not force_download:
+            print(f"Using cached file: {dest}")
             return dest
+        print(f"Downloading: {source}")
         return _download(source, dest)
     return Path(source)
 
@@ -61,7 +77,11 @@ def _normalize_columns(value: str | None) -> list[str] | None:
     return [item for item in items if item]
 
 
-def _read_dataframe(path: Path, fmt: str, columns: Iterable[str] | None, nrows: int | None) -> pd.DataFrame:
+def _read_dataframe(
+    path: Path, fmt: str, columns: Iterable[str] | None, nrows: int | None
+) -> "pd.DataFrame":
+    import pandas as pd
+
     if fmt == "csv":
         return pd.read_csv(path, usecols=columns, nrows=nrows)
     if fmt == "json":
@@ -71,7 +91,7 @@ def _read_dataframe(path: Path, fmt: str, columns: Iterable[str] | None, nrows: 
     raise ValueError(f"Unsupported format: {fmt}")
 
 
-def _write_dataframe(df: pd.DataFrame, output: Path, fmt: str) -> None:
+def _write_dataframe(df: "pd.DataFrame", output: Path, fmt: str) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     if fmt == "csv":
         df.to_csv(output, index=False)
@@ -89,6 +109,29 @@ def _format_columns(columns: list[str]) -> str:
     if len(columns) <= 25:
         return ", ".join(columns)
     return ", ".join(columns[:25]) + " ..."
+
+
+def _file_size_mb(path: Path) -> float:
+    return path.stat().st_size / (1024 * 1024)
+
+
+def _render_progress(downloaded: int, total: int) -> None:
+    if total > 0:
+        pct = downloaded / total * 100
+        sys.stdout.write(
+            f"\rDownloading... {pct:5.1f}% "
+            f"({downloaded / (1024 * 1024):.1f} MB / {total / (1024 * 1024):.1f} MB)"
+        )
+    else:
+        sys.stdout.write(f"\rDownloading... {downloaded / (1024 * 1024):.1f} MB")
+    sys.stdout.flush()
+
+
+def _finish_progress(downloaded: int, total: int) -> None:
+    if downloaded == 0 and total == 0:
+        return
+    sys.stdout.write("\n")
+    sys.stdout.flush()
 
 
 def main() -> None:
@@ -125,7 +168,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--cache-dir",
-        default="data/raw",
+        default=str(DEFAULT_CACHE_DIR),
         help="Directory for cached downloads (only used for URLs).",
     )
     parser.add_argument(
@@ -142,12 +185,19 @@ def main() -> None:
     args = parser.parse_args()
 
     cache_dir = Path(args.cache_dir)
+    print(f"Source: {args.source}")
+    print(f"Cache dir: {cache_dir}")
     source_path = _resolve_source(args.source, cache_dir, args.force_download)
     if not source_path.exists():
         raise FileNotFoundError(f"Source not found: {source_path}")
 
     fmt = args.format or _infer_format(source_path)
     columns = _normalize_columns(args.columns)
+    print(f"Format: {fmt}")
+    if args.output:
+        print(f"Output: {args.output}")
+    if columns:
+        print(f"Column filter: {_format_columns(columns)}")
 
     df = _read_dataframe(source_path, fmt, columns, args.nrows)
 
@@ -161,7 +211,8 @@ def main() -> None:
         output_path = Path(args.output)
         out_fmt = args.output_format or _infer_format(output_path)
         _write_dataframe(df, output_path, out_fmt)
-        print(f"Saved data to {output_path}")
+        size_mb = _file_size_mb(output_path)
+        print(f"Saved data to {output_path} ({size_mb:.1f} MB)")
 
 
 if __name__ == "__main__":
