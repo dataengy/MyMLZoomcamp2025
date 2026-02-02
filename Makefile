@@ -2,6 +2,8 @@
 
 setup:
 	uv sync
+	direnv allow && direnv reload
+	git remote -v
 
 lint:
 	ruff check .

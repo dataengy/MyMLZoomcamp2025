@@ -1,3 +1,7 @@
+import pytest
+
+pytest.importorskip("dagster")
+
 from dags.definitions import (
     defs,
     evaluation_report,
