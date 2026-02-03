@@ -20,7 +20,7 @@ PROJECT_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 UTILS_PATH="$PROJECT_ROOT/scripts/utils/utils.sh"
 
 if [[ -f "$UTILS_PATH" ]]; then
-  # shellcheck source=../utils/utils.sh
+  # shellcheck disable=SC1090,SC1091
   source "$UTILS_PATH"
 fi
 
@@ -51,11 +51,11 @@ while [[ $# -gt 0 ]]; do
       AUTO_FIX=true
       shift
       ;;
-    --verbose|-v)
+    --verbose | -v)
       VERBOSE=true
       shift
       ;;
-    -h|--help)
+    -h | --help)
       say "Usage: $0 [--fix] [--verbose]"
       exit 0
       ;;

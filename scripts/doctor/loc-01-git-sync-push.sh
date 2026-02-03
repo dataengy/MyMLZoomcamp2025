@@ -19,7 +19,7 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 UTILS_PATH="$(dirname "$SCRIPT_DIR")/utils/utils.sh"
 if [[ -f "$UTILS_PATH" ]]; then
-  # shellcheck source=../utils/utils.sh
+  # shellcheck disable=SC1090,SC1091
   source "$UTILS_PATH"
 fi
 
@@ -27,7 +27,10 @@ fi
 say() { printf "%b\n" "$*"; }
 log() { say "[INFO] $*"; }
 warn() { say "[WARN] $*" >&2; }
-fail() { say "[ERROR] $*" >&2; exit 1; }
+fail() {
+  say "[ERROR] $*" >&2
+  exit 1
+}
 
 # Colors
 COLOR_RESET='\033[0m'
@@ -40,7 +43,7 @@ COLOR_CYAN='\033[36m'
 # Default values
 DRY_RUN=false
 AUTO_STASH=false
-SYNC_MODE=""  # empty=ask, "rebase", "merge"
+SYNC_MODE="" # empty=ask, "rebase", "merge"
 REMOTE=""
 BRANCH=""
 
@@ -63,7 +66,7 @@ while [[ $# -gt 0 ]]; do
       SYNC_MODE="merge"
       shift
       ;;
-    -h|--help)
+    -h | --help)
       say "Usage: $0 [remote] [branch] [--dry-run] [--auto-stash] [--rebase|--merge]"
       exit 0
       ;;
@@ -215,7 +218,7 @@ if [[ "$SYNC_MODE" == "rebase" ]]; then
   else
     say "[DRY-RUN] Would run: git rebase $upstream"
   fi
-else  # merge
+else # merge
   if [[ "$DRY_RUN" == "false" ]]; then
     if git merge "$upstream"; then
       say "${COLOR_GREEN}✓ Merge successful${COLOR_RESET}"
