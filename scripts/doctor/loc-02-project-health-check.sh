@@ -181,15 +181,15 @@ fi
 if command -v uv >/dev/null 2>&1 && [[ -f "uv.lock" ]]; then
   log "Checking dependencies sync..."
   if [[ -f "pyproject.toml" ]]; then
-    # Check if .venv exists
-    if [[ ! -d ".venv" ]]; then
+    # Check if .run/.venv exists
+    if [[ ! -d ".run/.venv" ]]; then
       warn "Virtual environment not found"
       if [[ "$AUTO_FIX" == "true" ]]; then
         log "Creating virtual environment..."
-        uv sync
+        UV_PROJECT_ENVIRONMENT=".run/.venv" uv sync
         success "Virtual environment created"
       else
-        warn "Run 'uv sync' to create it"
+        warn "Run 'UV_PROJECT_ENVIRONMENT=.run/.venv uv sync' to create it"
         ((ISSUES_FOUND++))
       fi
     else

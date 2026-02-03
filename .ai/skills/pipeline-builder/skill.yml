@@ -1,0 +1,64 @@
+name: pipeline-builder
+command: /pipeline-builder
+version: "1.0"
+category: Phase3-Infrastructure
+description: >
+  Create and modify Dagster data pipelines. Generates asset definitions,
+  pipeline configs, data quality checks, and scheduling.
+
+triggers:
+  - "Create pipeline for <dataset>"
+  - "Add transformation step"
+  - "Schedule pipeline daily"
+  - "Build pipeline"
+
+inputs:
+  - name: pipeline_name
+    type: string
+    required: true
+    description: "Name for the new or existing pipeline"
+  - name: source
+    type: string
+    required: false
+    description: "Data source: file path, URL, or connector name"
+  - name: steps
+    type: list
+    required: false
+    description: "Ordered transformation steps (e.g. [clean, normalize, split])"
+  - name: schedule
+    type: string
+    required: false
+    description: "Cron expression for scheduling (e.g. '0 6 * * *' = daily 6am)"
+  - name: output_dir
+    type: string
+    required: false
+    default: "src/pipelines"
+    description: "Directory for generated pipeline code"
+
+outputs:
+  - path: "src/pipelines/{pipeline_name}/assets.py"
+    description: "Dagster asset definitions"
+  - path: "src/pipelines/{pipeline_name}/config.yml"
+    description: "Pipeline configuration"
+  - path: "src/pipelines/{pipeline_name}/checks.py"
+    description: "Data quality checks integrated into pipeline"
+  - path: "docs/pipelines/{pipeline_name}.md"
+    description: "Auto-generated pipeline documentation"
+
+dependencies:
+  - dagster
+  - dagster-io  # optional, for IO managers
+  - pandas
+
+workflow:
+  1. Parse pipeline spec (name, source, steps, schedule)
+  2. Generate source asset (file reader / API connector)
+  3. For each step, generate @asset with proper I/O:
+     - Input: previous step output or source
+     - Transformation logic stub + docstring
+     - Output type annotation
+  4. Add data quality check assets (row count, null rate, schema)
+  5. Generate pipeline config YAML (partitioning, retry, logging)
+  6. If schedule provided: add ScheduleDefinition
+  7. Generate pipeline documentation
+  8. Output all files + summary

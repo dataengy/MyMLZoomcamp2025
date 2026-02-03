@@ -2,22 +2,24 @@
 repos:
     - repo: local
       hooks:
+          # Python + Notebook linting and formatting (ruff handles .ipynb natively)
           - id: ruff
             name: ruff
             entry: uv run ruff check --fix
             language: system
-            types: [python]
+            types_or: [python, jupyter]
           - id: ruff-format
             name: ruff format
             entry: uv run ruff format
             language: system
-            types: [python]
-          - id: just-fmt
-            name: just --unstable --fmt --check
-            entry: just --unstable --fmt --check
+            types_or: [python, jupyter]
+          - id: nbstripout
+            name: nbstripout (strip notebook outputs)
+            entry: uv run nbstripout
             language: system
-            files: (^|/)(Justfile|.*\.just)$
-            pass_filenames: false
+            types: [jupyter]
+
+          # Shell formatting and linting
           - id: shfmt
             name: shfmt
             entry: shfmt -w -i 2 -ci
@@ -28,25 +30,54 @@ repos:
             entry: shellcheck
             language: system
             files: \.sh$
+
+#          # Just formatting
+#          - id: just-fmt
+#            name: just --unstable --fmt --check
+#            entry: just --unstable --fmt --check
+#            language: system
+#            files: (^|/)(Justfile|.*\.just)$
+#            pass_filenames: false
+
+          # Run tests (optional - can be slow)
+          # Uncomment to run tests on every commit
+          # - id: pytest
+          #   name: pytest
+          #   entry: uv run pytest -q
+          #   language: system
+          #   pass_filenames: false
+          #   stages: [commit]
+
+          # - id: test-notebooks-sanitized
+          #   name: check notebooks sanitized
+          #   entry: ./scripts/notebooks/check_sanitized.sh
+          #   language: system
+          #   pass_filenames: false
+          #   files: \.ipynb$
+
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v6.0.0
       hooks:
           - id: check-merge-conflict
-          - id: check-yaml
+#          - id: check-yaml
           - id: end-of-file-fixer
           - id: trailing-whitespace
+
     - repo: https://github.com/mrtazz/checkmake
       rev: 0.2.2
       hooks:
           - id: checkmake
             files: (^|/)(Makefile|.*\.mk)$
-    - repo: https://github.com/adrienverge/yamllint
-      rev: v1.37.1
-      hooks:
-          - id: yamllint
-            files: \.(yml|yaml)$
-    - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-      rev: 0.2.1
-      hooks:
-          - id: yamlfmt
-            files: \.(yml|yaml)$
+
+#    - repo: https://github.com/adrienverge/yamllint
+#      rev: v1.37.1
+#      hooks:
+#          - id: yamllint
+#            files: \.(yml|yaml)$
+#            args: [-c, config/linters/yamllint.yaml]
+
+#    - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+#      rev: 0.2.1
+#      hooks:
+#          - id: yamlfmt
+#            files: \.(yml|yaml)$

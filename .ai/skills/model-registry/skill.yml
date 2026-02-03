@@ -1,0 +1,69 @@
+name: model-registry
+command: /model-registry
+version: "1.0"
+category: Phase2-MLOps
+description: >
+  Version, tag, and manage trained models. Supports register, list, promote,
+  compare, and card generation workflows.
+
+triggers:
+  - "Register model"
+  - "Promote model to production"
+  - "Compare model versions"
+  - "List models"
+  - "Generate model card"
+
+inputs:
+  - name: action
+    type: string
+    required: true
+    description: "Action: register | list | promote | compare | card"
+  - name: model_path
+    type: string
+    required: false
+    description: "Path to model artifact (for register)"
+  - name: model_name
+    type: string
+    required: false
+    description: "Model name/identifier"
+  - name: stage
+    type: string
+    required: false
+    description: "Target stage for promote: dev | staging | prod"
+  - name: versions
+    type: list
+    required: false
+    description: "Version IDs to compare (for compare action)"
+
+outputs:
+  - path: "artifacts/models/{model_name}/v{N}/"
+    description: "Versioned model directory with metadata"
+  - path: "artifacts/models/{model_name}/v{N}/model_card.md"
+    description: "Auto-generated model card"
+  - path: "artifacts/models/registry.json"
+    description: "Central registry index (updated on every action)"
+
+dependencies:
+  - joblib
+  - json
+  - yaml
+
+workflow:
+  register:
+    1. Copy model artifact to artifacts/models/{name}/v{N}/
+    2. Generate metadata: timestamp, dataset, metrics, config
+    3. Create model_card.md
+    4. Update registry.json
+  list:
+    1. Read registry.json
+    2. Display table: name, version, stage, date, metrics summary
+  promote:
+    1. Validate model version exists
+    2. Update stage tag in registry.json
+    3. If prod: copy to artifacts/models/{name}/current/
+  compare:
+    1. Load metrics for requested versions
+    2. Generate side-by-side comparison table + plots
+  card:
+    1. Read model metadata + experiment results
+    2. Render model_card.md with performance, data, limitations

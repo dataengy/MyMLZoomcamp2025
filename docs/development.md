@@ -160,7 +160,7 @@ See [architecture.md](architecture.md) for detailed architecture.
 ├── config/           # Configuration files
 ├── data/             # Data storage
 ├── models/           # Saved models
-└── reports/          # Training reports
+└── .run/             # Runtime outputs (reports, logs, dagster, venv)
 ```
 
 ## Common Tasks
@@ -226,7 +226,7 @@ docker system prune -f
 
 Reset virtual environment:
 ```bash
-rm -rf .venv
+rm -rf .run/.venv
 ./scripts/setup.sh
 ```
 

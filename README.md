@@ -29,6 +29,46 @@ Notes:
 - Environment variables live in [`config/.env`](config/.env) (copy from [`config/.env.demo`](config/.env.demo)).
 - Logging is configured via [`config/config.yml`](config/config.yml) and `LOG_LEVEL` in [`config/.env`](config/.env).
 
+## Jupyter Notebooks
+
+### Testing and Linting
+
+```bash
+# Lint notebooks with ruff
+make lint-notebooks
+
+# Check notebooks are sanitized (no outputs)
+make test-notebooks-sanitized
+
+# Test notebook execution (can be slow)
+make test-notebooks
+
+# Strip outputs from all notebooks
+just nb-strip
+
+# Format notebooks
+just nb-fmt
+
+# Run all notebook checks
+just nb-check
+```
+
+**Important:** Always strip notebook outputs before committing to prevent merge conflicts:
+```bash
+just nb-strip
+git add notebooks/
+git commit -m "Update notebooks"
+```
+
+See [`docs/notebook-testing.md`](docs/notebook-testing.md) for detailed documentation.
+
+### Notebook Tools
+
+- **nbqa** - Run ruff linter/formatter on notebooks
+- **nbval** - Test notebook execution with pytest
+- **nbstripout** - Auto-strip outputs on commit
+- **pre-commit hooks** - Automatic linting and sanitization
+
 ## Local services
 
 Run the API:

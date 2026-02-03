@@ -1,0 +1,55 @@
+name: eda
+command: /eda
+version: "1.0"
+category: Phase1-CoreML
+description: >
+  Automate Exploratory Data Analysis with visualizations, statistical summaries,
+  missing value checks, and outlier detection. Produces a self-contained HTML report.
+
+triggers:
+  - "Create EDA for <dataset>"
+  - "Analyze data distribution"
+  - "Generate data quality report"
+  - "Explore <dataset>"
+  - "EDA on <dataset>"
+
+inputs:
+  - name: dataset
+    type: string
+    required: true
+    description: "Dataset file or name in data/processed/ (csv, parquet)"
+  - name: target
+    type: string
+    required: false
+    description: "Target column name for supervised analysis"
+  - name: sample_size
+    type: integer
+    required: false
+    default: 10000
+    description: "Max rows to analyze (for large datasets)"
+
+outputs:
+  - path: "reports/eda/eda_{dataset}_{date}.html"
+    description: "Self-contained HTML EDA report"
+  - path: "reports/eda/eda_{dataset}_{date}.json"
+    description: "Machine-readable summary (shape, dtypes, null counts, stats)"
+
+dependencies:
+  - pandas
+  - matplotlib
+  - seaborn
+  - scipy
+  - ydata-profiling  # optional, generates rich profiling report
+
+workflow:
+  1. Load dataset from data/processed/
+  2. Basic info: shape, dtypes, memory usage
+  3. Statistical summary (describe) per dtype group
+  4. Missing values heatmap + percentage table
+  5. Distribution plots (histogram + KDE) for numeric columns
+  6. Categorical value counts (top-N bar charts)
+  7. Correlation matrix heatmap (numeric columns)
+  8. Outlier detection (IQR method) + flagged rows count
+  9. If target specified: target distribution + feature-target correlations
+  10. Assemble HTML report with all plots inline
+  11. Save HTML + summary JSON to reports/eda/

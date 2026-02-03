@@ -7,7 +7,7 @@ logging:
     backtrace: true
     diagnose: false
     file:
-        path: logs/app.log
+        path: .run/logs/app.log
         level: INFO
         rotation: 10 MB
         retention: 10 days

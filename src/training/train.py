@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from config.logging import configure_logging, log
+from config.paths import REPORTS_DIR
 
 configure_logging()
 
@@ -67,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--metrics-out",
         type=Path,
-        default=Path("reports/metrics.json"),
+        default=REPORTS_DIR / "metrics.json",
         help="Output path for training metrics",
     )
 

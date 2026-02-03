@@ -36,7 +36,7 @@ Access at: `http://localhost:8888`
 - Empty token disables authentication (development only)
 - Data is mounted from [`../data/`](../data/)
 - Models are saved to [`../models/`](../models/)
-- Reports are saved to [`../reports/`](../reports/)
+- Reports are saved to [`../.run/reports/`](../.run/reports/)
 
 ## Notebook Guidelines
 
@@ -54,7 +54,7 @@ Use numbered prefixes for sequential analysis:
 2. **Document assumptions**: Explain why you made specific choices
 3. **Reproducible**: Set random seeds, document dependencies
 4. **Clean outputs**: Clear outputs before committing (use `pre-commit` hooks)
-5. **Export key findings**: Save important results to [`../reports/`](../reports/)
+5. **Export key findings**: Save important results to [`../.run/reports/`](../.run/reports/)
 6. **Modular code**: Move reusable code to [`../src/`](../src/)
 
 ### Common Tasks
@@ -73,7 +73,7 @@ df = pd.read_parquet(DATA_DIR / "processed" / "dataset.parquet")
 import json
 from pathlib import Path
 
-REPORTS_DIR = Path("../reports")
+REPORTS_DIR = Path("../.run/reports")
 REPORTS_DIR.mkdir(exist_ok=True)
 
 results = {"metric": value}

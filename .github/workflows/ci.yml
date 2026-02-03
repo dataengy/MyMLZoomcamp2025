@@ -7,7 +7,7 @@ on:
     pull_request:
 
 jobs:
-    lint-test:
+    lint:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -24,8 +24,60 @@ jobs:
             - name: Install dependencies
               run: uv sync --frozen
 
-            - name: Lint
-              run: make lint
+            - name: Lint Python
+              run: uv run ruff check .
 
-            - name: Tests
-              run: make test
+            - name: Lint Notebooks
+              run: ./scripts/notebooks/lint_notebooks.sh
+
+            - name: Check YAML
+              run: |
+                  pip install yamllint
+                  yamllint .
+
+    test:
+        runs-on: ubuntu-latest
+        needs: lint
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.13'
+
+            - name: Install uv
+              run: pip install uv
+
+            - name: Install dependencies
+              run: uv sync --frozen
+
+            - name: Run unit tests
+              run: uv run pytest -v
+
+            - name: Check notebooks are sanitized
+              run: ./scripts/notebooks/check_sanitized.sh
+
+    notebooks:
+        runs-on: ubuntu-latest
+        needs: test
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.13'
+
+            - name: Install uv
+              run: pip install uv
+
+            - name: Install dependencies
+              run: uv sync --frozen
+
+            - name: Test notebook execution
+              run: ./scripts/notebooks/test_notebooks.sh
+              continue-on-error: true

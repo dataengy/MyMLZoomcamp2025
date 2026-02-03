@@ -5,11 +5,15 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_SYSTEM_PYTHON=1 \
-    DAGSTER_HOME=/app/.dagster \
+    RUN_DIR=/app/.run \
+    REPORTS_DIR=/app/.run/reports \
+    LOG_DIR=/app/.run/logs \
+    DAGSTER_HOME=/app/.run/dagster \
+    UV_PROJECT_ENVIRONMENT=/app/.run/.venv \
     PYTHONPATH=/app/src \
-    PATH="/app/.venv/bin:${PATH}"
+    PATH="/app/.run/.venv/bin:${PATH}"
 
-RUN mkdir -p /app/.dagster
+RUN mkdir -p /app/.run/dagster /app/.run/logs /app/.run/reports
 
 RUN pip install --no-cache-dir uv
 

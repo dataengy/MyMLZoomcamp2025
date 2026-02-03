@@ -25,7 +25,7 @@ def test_evaluate_writes_metrics(tmp_path: Path, monkeypatch) -> None:
         json.dumps({"type": "mean_baseline", "target": "trip_duration", "target_mean": 600.0})
     )
 
-    output_path = tmp_path / "reports" / "evaluation.json"
+    output_path = tmp_path / ".run" / "reports" / "evaluation.json"
 
     monkeypatch.chdir(tmp_path)
     exit_code = main(

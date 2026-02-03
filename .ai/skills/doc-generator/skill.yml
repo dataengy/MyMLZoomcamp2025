@@ -1,0 +1,55 @@
+name: doc-generator
+command: /doc-generator
+version: "1.0"
+category: Phase3-Infrastructure
+description: >
+  Auto-generate documentation from source code: API references,
+  module docs, usage examples, README sections, and architecture diagrams.
+
+triggers:
+  - "Generate API docs"
+  - "Update README"
+  - "Create pipeline documentation"
+  - "Generate docs for <module>"
+  - "Document <component>"
+
+inputs:
+  - name: target
+    type: string
+    required: true
+    description: "What to document: api | module:<name> | readme | all"
+  - name: output_format
+    type: string
+    required: false
+    default: "markdown"
+    description: "Output format: markdown | html | rst"
+  - name: examples
+    type: boolean
+    required: false
+    default: true
+    description: "If true, generate usage examples from docstrings + code"
+
+outputs:
+  - path: "docs/api/{module}.md"
+    description: "API reference for module"
+  - path: "docs/usage/{module}.md"
+    description: "Usage guide with examples"
+  - path: "README.md"
+    description: "Updated README (if target=readme)"
+  - path: "docs/architecture.md"
+    description: "Architecture overview (if target=all)"
+
+dependencies:
+  - ast  # Python AST parsing
+  - inspect
+
+workflow:
+  1. Scan target source files
+  2. Parse AST: extract classes, functions, docstrings, type hints
+  3. For each public API:
+     a. Generate signature + docstring
+     b. If --examples: find usage in tests/notebooks, include as examples
+  4. If target=readme: extract key sections, update README
+  5. If target=all: generate architecture overview from module structure
+  6. Write output files in specified format
+  7. Print index of generated docs

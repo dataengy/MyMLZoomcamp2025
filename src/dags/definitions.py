@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 from dagster import Definitions, asset, define_asset_job
 
+from config.paths import REPORTS_DIR
+
 
 @dataclass(frozen=True)
 class TrainingArtifacts:
@@ -27,7 +29,8 @@ def prepared_data(raw_data: dict) -> dict:
 def trained_model(prepared_data: dict) -> TrainingArtifacts:
     """Stub training step."""
     _ = prepared_data
-    return TrainingArtifacts(model_path="models/model.json", metrics_path="reports/metrics.json")
+    metrics_path = REPORTS_DIR / "metrics.json"
+    return TrainingArtifacts(model_path="models/model.json", metrics_path=str(metrics_path))
 
 
 @asset

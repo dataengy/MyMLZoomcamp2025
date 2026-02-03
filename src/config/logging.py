@@ -31,7 +31,8 @@ def configure_logging(config_path: Path | None = None) -> None:
     data = _load_config(config_file)
     log_cfg = data.get("logging", {}) if isinstance(data, dict) else {}
 
-    level = os.environ.get("LOG_LEVEL", log_cfg.get("level", "DEBUG"))
+    raw_level = os.environ.get("LOG_LEVEL", log_cfg.get("level", "DEBUG"))
+    level = raw_level.upper() if isinstance(raw_level, str) else raw_level
     fmt = log_cfg.get(
         "format",
         "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
@@ -55,9 +56,12 @@ def configure_logging(config_path: Path | None = None) -> None:
     if isinstance(file_cfg, dict) and file_cfg.get("path"):
         file_path = Path(file_cfg["path"])
         file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_level = file_cfg.get("level", level)
+        if isinstance(file_level, str):
+            file_level = file_level.upper()
         log.add(
             file_path,
-            level=file_cfg.get("level", level),
+            level=file_level,
             format=fmt,
             rotation=file_cfg.get("rotation"),
             retention=file_cfg.get("retention"),

@@ -5,6 +5,8 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON_VERSION="${PYTHON_VERSION:-3.13}"
 UV_SYNC_FLAGS="${UV_SYNC_FLAGS:---frozen}"
 ALLOW_DIRENV="${ALLOW_DIRENV:-0}"
+RUN_DIR="${RUN_DIR:-$PROJECT_ROOT/.run}"
+export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$RUN_DIR/.venv}"
 
 # shellcheck disable=SC1091
 . "$PROJECT_ROOT/scripts/utils/utils.sh"
@@ -61,6 +63,7 @@ main() {
     fail "uv not found on PATH after installation."
   fi
 
+  mkdir -p "$RUN_DIR"/{reports,logs,dagster}
   (cd "$PROJECT_ROOT" && uv python install "$PYTHON_VERSION")
   # shellcheck disable=SC2086
   (cd "$PROJECT_ROOT" && uv sync $UV_SYNC_FLAGS)

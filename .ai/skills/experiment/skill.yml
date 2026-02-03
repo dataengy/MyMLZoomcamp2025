@@ -1,0 +1,64 @@
+name: experiment
+command: /experiment
+version: "1.0"
+category: Phase1-CoreML
+description: >
+  Run and track ML experiments with different models and hyperparameters.
+  Compares baselines, logs metrics, and saves results to reports/.
+
+triggers:
+  - "Run experiment with <model>"
+  - "Compare <model_A> vs <model_B>"
+  - "Tune hyperparameters for <model>"
+  - "Run baseline"
+
+inputs:
+  - name: model
+    type: string
+    required: true
+    description: "Target model class (e.g. RandomForest, XGBoost, LinearRegression)"
+  - name: dataset
+    type: string
+    required: false
+    default: "latest"
+    description: "Dataset name from data/processed/. 'latest' uses most recent"
+  - name: compare
+    type: string
+    required: false
+    description: "Baseline model to compare against. If omitted, runs solo"
+  - name: tune
+    type: boolean
+    required: false
+    default: false
+    description: "If true, run hyperparameter search via GridSearchCV or Optuna"
+  - name: seed
+    type: integer
+    required: false
+    default: 42
+    description: "Random seed for reproducibility"
+
+outputs:
+  - path: "reports/experiments/exp_{model}_{date}.json"
+    description: "Experiment results with metrics and metadata"
+  - path: "reports/experiments/comparison_{modelA}_vs_{modelB}_{date}.html"
+    description: "HTML comparison report (generated when --compare is used)"
+  - path: ".claude/_RnD/experiment_log.csv"
+    description: "Append-only experiment tracking log"
+
+dependencies:
+  - scikit-learn
+  - pandas
+  - numpy
+  - matplotlib
+  - optuna  # optional, for hyperparameter tuning
+
+workflow:
+  1. Load dataset from data/processed/
+  2. Split train/val/test (80/10/10 or as configured)
+  3. Train baseline model (if --compare specified)
+  4. Train experiment model
+  5. Evaluate: accuracy, precision, recall, F1, AUC (classification) or RMSE, R2, MAE (regression)
+  6. If --tune: run hyperparameter search, retrain best config
+  7. Save results JSON + optional comparison HTML
+  8. Append to experiment tracking log
+  9. Print summary table to stdout

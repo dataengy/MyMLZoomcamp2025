@@ -108,7 +108,7 @@ After adding to `pyproject.toml`:
 
 In Jupyter Lab:
 1. Click kernel name (top right)
-2. Select Python 3 kernel from project's `.venv`
+2. Select Python 3 kernel from project's `.run/.venv`
 
 ## Import Errors
 
