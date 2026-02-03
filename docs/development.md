@@ -68,25 +68,39 @@ make lint
 
 ### Testing
 
+Tests are split into two groups:
+
+- **`tests/unit/`** — fast, isolated tests (API, data-tools logic, training, orchestration)
+- **`tests/integration/`** — subprocess and Docker tests (marked `@pytest.mark.integration`)
+
 Run all tests:
 ```bash
 make test
 ```
 
-Run specific tests:
+Run only unit tests:
 ```bash
-pytest tests/test_api.py -v
-pytest tests/test_training_artifacts.py -k "test_name"
+uv run pytest tests/unit/ -v
 ```
 
-Fast tests (skip slow tests):
+Run only integration tests:
 ```bash
-just test-fast
+uv run pytest tests/integration/ -v
+```
+
+Run specific test:
+```bash
+uv run pytest tests/unit/test_api.py -v
+```
+
+Run bats smoke tests (shell scripts):
+```bash
+bats tests/bash/smoke-*.bats
 ```
 
 Test with coverage:
 ```bash
-pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 open htmlcov/index.html
 ```
 
@@ -95,8 +109,8 @@ open htmlcov/index.html
 #### API Server
 ```bash
 make serve
-# or with auto-reload
-uvicorn src.api.main:app --reload
+# or with auto-reload (PYTHONPATH=src exposes the src/ packages)
+PYTHONPATH=src uv run uvicorn api.main:app --reload
 ```
 
 #### Dagster
@@ -142,8 +156,6 @@ Shell into container:
 
 ## Project Structure
 
-See [architecture.md](architecture.md) for detailed architecture.
-
 ```
 .
 ├── src/              # Source code
@@ -154,7 +166,7 @@ See [architecture.md](architecture.md) for detailed architecture.
 ├── scripts/          # Utility scripts
 │   ├── data_tools/   # Data processing
 │   └── utils/        # Shell utilities
-├── tests/            # Test suite
+├── tests/            # Test suite (unit/, integration/, bash/)
 ├── notebooks/        # Jupyter notebooks
 ├── docs/             # Documentation
 ├── config/           # Configuration files
@@ -240,7 +252,7 @@ rm -rf .run/.venv
 
 ## See Also
 
-- [Architecture](architecture.md) - System design
 - [Testing Guide](#testing) - Testing best practices
 - [API Reference](api.md) - API documentation
-- [Deployment](deployment.md) - Production deployment
+- [Data Pipeline](data_pipeline.md) - Data ingestion and processing
+- [Model Development](model_development.md) - Training and evaluation

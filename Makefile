@@ -2,7 +2,7 @@
 # For complex recipes with arguments, see Justfile
 # For detailed scripts, see scripts/
 
-.PHONY: all clean setup lint lint-notebooks format format-python format-shell format-yaml format-just format-hooks test test-notebooks test-notebooks-sanitized train serve run-dags streamlit jupyter docker-build docker-up up
+.PHONY: all clean setup lint lint-notebooks format format-python format-shell format-yaml format-just format-hooks test test-notebooks test-notebooks-sanitized qa-all train serve run-dags streamlit jupyter docker-build docker-up up
 
 # ============================================================================
 # Configuration
@@ -21,6 +21,10 @@ setup:
 
 # Run all checks (lint + test)
 all: lint test
+
+# Run full QA suite via Justfile
+qa-all:
+	just qa-all-project
 
 # Clean build artifacts and caches
 clean:
@@ -97,7 +101,7 @@ test-notebooks-sanitized:
 
 # Train ML model
 train:
-	uv run python src/training/train.py
+	PYTHONPATH=src uv run python src/training/train.py
 
 # ============================================================================
 # Services

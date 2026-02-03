@@ -162,3 +162,13 @@ nb-check: notebooks-check
 
 # Alias: strip notebook outputs
 nb-strip: strip-notebooks
+
+# ============================================================================
+# QA Aggregation
+# ============================================================================
+
+# Run all QA checks (lint + tests + notebook QA + data/ML sanity tests)
+qa-all-project: lint-notebooks format-notebooks test-notebooks test-notebooks-sanitized strip-notebooks data-test ml-test test-fast
+    make lint
+    make test
+    @echo "✓ QA (all) completed successfully!"

@@ -26,11 +26,11 @@ See [notebooks/README.md](../notebooks/README.md) for templates and best practic
 
 Training code lives in [`src/training/`](../src/training/).
 
-Run training:
+Run training (from the project root):
 ```bash
 make train
-# or
-python src/training/train.py
+# or, manually:
+PYTHONPATH=src uv run python src/training/train.py
 ```
 
 ## Model Registry
@@ -114,4 +114,4 @@ TODO: Add model monitoring (drift detection, performance tracking)
 - [API Reference](api.md) - Model serving
 - [Data Pipeline](data_pipeline.md) - Data preparation
 - [Notebooks](../notebooks/README.md) - Experimentation
-- [Orchestration](orchestration.md) - Training orchestration
+- [Data Pipeline](data_pipeline.md) - Training orchestration via Dagster

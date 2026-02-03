@@ -18,8 +18,7 @@ GET /health
 **Response:**
 ```json
 {
-  "status": "ok",
-  "timestamp": "2026-02-03T12:00:00Z"
+  "status": "ok"
 }
 ```
 
@@ -39,18 +38,11 @@ POST /predict
 **Response:**
 ```json
 {
-  "prediction": 42.0,
-  "model_version": "1.0.0",
-  "timestamp": "2026-02-03T12:00:00Z"
+  "prediction": 7.0
 }
 ```
 
-**Error Response:**
-```json
-{
-  "detail": "Model not loaded"
-}
-```
+> Note: the placeholder `/predict` sums `features`; once a real model is wired in the response shape stays the same but values will change.
 
 ## Running the API
 
@@ -71,8 +63,8 @@ docker compose -f deploy/docker-compose.yml up api
 ### Interactive Development
 
 ```bash
-# Start with auto-reload
-uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+# Start with auto-reload (PYTHONPATH=src exposes the src/ packages)
+PYTHONPATH=src uv run uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## API Documentation
@@ -96,10 +88,10 @@ Not currently implemented. For production, consider adding rate limiting to prev
 
 ## Monitoring
 
-See [deployment.md](deployment.md#monitoring) for monitoring and observability setup.
+TODO: Add monitoring and observability setup documentation.
 
 ## See Also
 
 - [Model Development](model_development.md) - How models are trained and versioned
-- [Deployment](deployment.md) - Production deployment guide
-- [Architecture](architecture.md) - System design overview
+- [Data Pipeline](data_pipeline.md) - Data ingestion and processing
+- [Development](development.md) - Local development and Docker setup

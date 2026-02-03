@@ -5,9 +5,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 
+
+@pytest.mark.integration
 def test_simple_ml_test_writes_model_info(tmp_path: Path) -> None:
-    repo_root = Path(__file__).resolve().parents[1]
+    repo_root = Path(__file__).resolve().parents[2]
     script_path = repo_root / "tests" / "bash" / "simple_ml_test.py"
 
     processed_dir = tmp_path / "data" / "processed"

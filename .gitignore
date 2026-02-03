@@ -203,5 +203,6 @@ Justfile
 /.stash/.tmp_dagster_home_7no7tb2n/history/runs/index.db
 /.stash/.tmp_dagster_home_7no7tb2n/history/runs.db
 /.stash/.tmp_dagster_home_7no7tb2n/schedules/schedules.db
-/.stash/backups/.pre-commit-config.yaml.bak
+/.stash/.bak/backups/.pre-commit-config.yaml.bak
 /.stash/nbstripout.unused
+/.stash/

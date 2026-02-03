@@ -9,6 +9,6 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "==> Formatting notebooks with nbqa ruff format..."
-uv run nbqa ruff format notebooks/
+uv run nbqa ruff notebooks/ format
 
 echo "✓ Notebook formatting complete!"

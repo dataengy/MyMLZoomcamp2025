@@ -22,6 +22,7 @@ def _wait_for_health(url: str, timeout_seconds: int = 30) -> bool:
     return False
 
 
+@pytest.mark.integration
 @pytest.mark.skipif(
     os.environ.get("DOCKER_TESTS") != "1" or shutil.which("docker") is None,
     reason="Docker tests disabled (set DOCKER_TESTS=1) or docker not available.",

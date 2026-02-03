@@ -41,6 +41,7 @@ addopts = [
 markers = [
     "notebook: marks tests for Jupyter notebooks",
     "slow: marks tests as slow",
+    "integration: marks integration tests (subprocess, docker, external deps)",
 ]
 
 [tool.nbqa.addopts]

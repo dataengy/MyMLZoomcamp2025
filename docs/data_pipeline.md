@@ -19,7 +19,7 @@ Located in [`scripts/data_tools/`](../scripts/data_tools/):
 [`download_data.py`](../scripts/data_tools/download_data.py) - Download NYC Taxi parquet files
 
 ```bash
-python scripts/data_tools/download_data.py
+uv run python scripts/data_tools/download_data.py
 ```
 
 ### Process Data
@@ -27,7 +27,7 @@ python scripts/data_tools/download_data.py
 [`process_data.py`](../scripts/data_tools/process_data.py) - Clean and feature engineer data
 
 ```bash
-python scripts/data_tools/process_data.py
+uv run python scripts/data_tools/process_data.py
 ```
 
 ### Load Data
@@ -53,7 +53,7 @@ data/
 
 ## Orchestration
 
-Data pipeline is orchestrated with Dagster. See [orchestration.md](orchestration.md) for details.
+Data pipeline is orchestrated with Dagster. Assets are defined in [`src/dags/definitions.py`](../src/dags/definitions.py).
 
 ## Data Validation
 
@@ -61,6 +61,6 @@ TODO: Add data validation strategy (Great Expectations, Pandera, etc.)
 
 ## See Also
 
-- [Orchestration](orchestration.md) - Dagster pipeline
 - [Model Development](model_development.md) - Using processed data for training
+- [Development](development.md) - Local setup and tooling
 - [Notebooks](../notebooks/README.md) - Exploratory data analysis
