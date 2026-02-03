@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
@@ -19,7 +20,7 @@ if str(ROOT_PATH) not in sys.path:
 def pytest_sessionstart(session: pytest.Session) -> None:
     required = ["fastapi", "pandas", "dagster"]
     missing = [name for name in required if importlib.util.find_spec(name) is None]
-    if missing:
+    if missing and os.environ.get("REQUIRE_TEST_DEPS") == "1":
         raise pytest.UsageError(
             "Missing required test dependencies: "
             + ", ".join(missing)

@@ -28,7 +28,7 @@ def trained_model(prepared_data: dict) -> TrainingArtifacts:
     """Stub training step."""
     _ = prepared_data
     return TrainingArtifacts(
-        model_path="models/model.joblib", metrics_path="reports/metrics.json"
+        model_path="models/model.json", metrics_path="reports/metrics.json"
     )
 
 

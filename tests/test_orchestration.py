@@ -2,6 +2,8 @@ import pytest
 
 pytest.importorskip("dagster")
 
+from dagster import materialize_to_memory
+
 from dags.definitions import (
     defs,
     evaluation_report,
@@ -19,3 +21,10 @@ def test_dagster_definitions_exist() -> None:
     assert trained_model is not None
     assert evaluation_report is not None
     assert training_job is not None
+
+
+def test_dagster_assets_materialize_in_memory() -> None:
+    result = materialize_to_memory(
+        [raw_data, prepared_data, trained_model, evaluation_report]
+    )
+    assert result.success
