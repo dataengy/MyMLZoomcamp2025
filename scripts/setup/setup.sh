@@ -8,6 +8,7 @@ ALLOW_DIRENV="${ALLOW_DIRENV:-0}"
 RUN_DIR="${RUN_DIR:-$PROJECT_ROOT/.run}"
 export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$RUN_DIR/.venv}"
 DRY_RUN=0
+APT_UPDATED=0
 
 # shellcheck disable=SC1091
 . "$PROJECT_ROOT/scripts/utils/utils.sh"
@@ -50,18 +51,62 @@ ensure_path_for_uv() {
 }
 
 install_tools_macos() {
-  if ! have brew; then
-    fail "Homebrew not found. Install it from https://brew.sh and re-run."
-  fi
-  brew install direnv just uv
+  install_tool direnv
+  install_tool uv
+  install_just
 }
 
 install_tools_apt() {
-  sudo apt-get update
-  sudo apt-get install -y direnv just curl
+  install_tool direnv
+  install_tool curl
+  install_just
   if ! have uv; then
     curl -LsSf https://astral.sh/uv/install.sh | sh
   fi
+}
+
+install_tool() {
+  local tool
+  tool="$1"
+  if have "$tool"; then
+    log "Skipping install: $tool already installed."
+    return
+  fi
+  local os
+  os="$(uname -s)"
+  case "$os" in
+    Darwin)
+      if ! have brew; then
+        fail "Homebrew not found. Install it from https://brew.sh and re-run."
+      fi
+      brew install "$tool"
+      ;;
+    Linux)
+      if have apt-get; then
+        if [ "$APT_UPDATED" -eq 0 ]; then
+          sudo apt-get update
+          APT_UPDATED=1
+        fi
+        sudo apt-get install -y "$tool"
+      else
+        fail "Unsupported Linux package manager. Install $tool manually."
+      fi
+      ;;
+    *)
+      fail "Unsupported OS: $os. Install $tool manually."
+      ;;
+  esac
+}
+
+install_just() {
+  install_tool just
+}
+
+ensure_just() {
+  if have just; then
+    return
+  fi
+  install_just
 }
 
 install_tools() {
@@ -117,4 +162,6 @@ main() {
   log "Setup complete."
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi

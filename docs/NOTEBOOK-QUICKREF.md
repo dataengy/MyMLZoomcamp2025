@@ -4,21 +4,18 @@
 
 ```bash
 # Lint notebooks
-make lint-notebooks
 just nb-lint
 
 # Format notebooks
 just nb-fmt
 
 # Check sanitized (no outputs)
-make test-notebooks-sanitized
 just nb-check
 
 # Strip outputs
 just nb-strip
 
 # Test execution
-make test-notebooks
 just nb-test
 
 # Enable verbose logging
@@ -77,7 +74,6 @@ docs/notebook-testing.md             # Full documentation
 
 - `pyproject.toml` - Added nbqa, nbval, nbstripout, pytest config
 - `.pre-commit-config.yaml` - Added notebook hooks
-- `Makefile` - Added notebook targets with comments
 - `Justfile` - Added notebook recipes with TRACE logging
 - `.github/workflows/ci.yml` - Added notebook CI jobs
 - `README.md` - Added notebook section

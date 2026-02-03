@@ -4,12 +4,17 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("pandas")
 
-from scripts.data_tools.process_data import main
+@pytest.fixture()
+def process_data_main():
+    pytest.require_optional("pandas")
+    from scripts.data_tools.process_data import main
+
+    return main
 
 
-def test_process_data_writes_outputs_csv(tmp_path: Path) -> None:
+def test_process_data_writes_outputs_csv(tmp_path: Path, process_data_main) -> None:
+    main = process_data_main
     input_dir = tmp_path / "raw"
     output_dir = tmp_path / "processed"
     input_dir.mkdir()

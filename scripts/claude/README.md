@@ -6,7 +6,7 @@ Utilities for Claude Code workflows (context snapshots and skill installation).
 
 - `Justfile` - just wrappers for common tasks
 - `context.sh` - snapshot of git status, TODOs, and recent prompts
-- `install_skills.sh` - build and install skills from `.ai/skills/` to `.claude/skills/`
+- `install_skills.sh` - build and install skills from `.ai/.codex/skills/` to `.claude/skills/`
 
 ## Usage
 

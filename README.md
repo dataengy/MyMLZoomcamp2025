@@ -13,10 +13,15 @@ sample if downloads are disabled.
 
 ## Quick start
 
-1) Install tooling + deps (direnv optional, just optional, uv, Python) and sync the lockfile:
+1) Install tooling + deps (direnv optional, just required for Makefile wrappers, uv, Python) and sync the lockfile:
 
 ```bash
 ./scripts/setup/setup.sh
+```
+
+Or use the wrapper:
+```bash
+make setup
 ```
 
 If you want setup to call `direnv allow`, run:
@@ -48,13 +53,13 @@ Notes:
 
 ```bash
 # Lint notebooks with ruff
-make lint-notebooks
+just nb-lint
 
 # Check notebooks are sanitized (no outputs)
-make test-notebooks-sanitized
+just nb-check
 
 # Test notebook execution (can be slow)
-make test-notebooks
+just nb-test
 
 # Strip outputs from all notebooks
 just nb-strip
@@ -244,40 +249,6 @@ Comprehensive documentation is available in [`docs/`](docs/):
 
 ## Make vs Just
 
-Use the [`Makefile`](Makefile) for the main, common ops. Use the [`Justfile`](Justfile) for more complex or speed-oriented workflows.
+This repo uses both a Makefile (common workflows) and a Justfile (advanced and wrapper workflows). See the combined guide:
 
-### Makefile (common ops)
-
-Common targets:
-
-- `make setup`
-- `make lint`
-- `make format`
-- `make test`
-- `make train`
-- `make serve`
-- `make run-dags`
-- `make streamlit`
-- `make jupyter`
-- `make docker-build`
-- `make docker-up` / `make up`
-
-### Justfile (complex / fast ops)
-
-- `just setup-dev`
-- `just data` (requires `DATA_SOURCE`, optional `DATA_COLUMNS`, `DATA_NROWS`, `DATA_OUTPUT`)
-- `just data-download`
-- `just data-process`
-- `just data-test`
-- `just ml-test`
-- `just evaluate`
-- `just full-pipeline`
-- `just test-fast`
-
-### Agent Justfiles (Claude + Codex)
-
-- `just -f scripts/claude/Justfile context`
-- `just -f scripts/claude/Justfile install-skills`
-- `just -f scripts/codex/Justfile install-skills`
-
-See [`scripts/claude/README.md`](scripts/claude/README.md) and [`scripts/codex/README.md`](scripts/codex/README.md) for details.
+- [**Makefile + Justfile guide**](docs/make-just.md)

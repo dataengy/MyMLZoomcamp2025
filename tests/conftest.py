@@ -32,6 +32,18 @@ for key, value in TEST_ENV_DEFAULTS.items():
     os.environ.setdefault(key, value)
 
 
+def require_optional(*names: str) -> None:
+    missing = [name for name in names if importlib.util.find_spec(name) is None]
+    if missing:
+        pytest.skip(
+            "Missing optional dependency: " + ", ".join(missing),
+            allow_module_level=True,
+        )
+
+
+pytest.require_optional = require_optional
+
+
 def pytest_sessionstart(session: pytest.Session) -> None:
     required = ["fastapi", "pandas", "dagster"]
     missing = [name for name in required if importlib.util.find_spec(name) is None]

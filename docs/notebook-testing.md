@@ -15,24 +15,18 @@ This project uses several tools to ensure notebook quality:
 
 ```bash
 # Lint notebooks
-make lint-notebooks
-# or
 just nb-lint
 
 # Format notebooks
 just nb-fmt
 
 # Check notebooks are sanitized (no outputs)
-make test-notebooks-sanitized
-# or
 just nb-check
 
 # Strip outputs from all notebooks
 just nb-strip
 
 # Test notebook execution (can be slow)
-make test-notebooks
-# or
 just nb-test
 ```
 
@@ -221,13 +215,13 @@ git commit -m "Add analysis notebook"
 
 ```bash
 # Check all notebooks in PR are clean
-make test-notebooks-sanitized
+just nb-check
 
 # Verify notebooks execute successfully
-make test-notebooks
+just nb-test
 
 # Lint notebooks
-make lint-notebooks
+just nb-lint
 ```
 
 ### Fixing Failed Checks
@@ -364,16 +358,16 @@ All scripts are in `scripts/notebooks/`:
 | `strip_notebooks.sh` | Remove all outputs |
 | `test_notebooks.sh` | Execute notebooks with nbval |
 
-## Make/Just Commands
+## Just Commands
 
-| Make | Just | Description |
-|------|------|-------------|
-| `make lint-notebooks` | `just nb-lint` | Lint notebooks |
-| - | `just nb-fmt` | Format notebooks |
-| `make test-notebooks` | `just nb-test` | Test execution |
-| `make test-notebooks-sanitized` | `just nb-check` | Check sanitized |
-| - | `just nb-strip` | Strip outputs |
-| - | `just notebooks-check` | Lint + sanitized |
+| Command | Description |
+|---------|-------------|
+| `just nb-lint` | Lint notebooks |
+| `just nb-fmt` | Format notebooks |
+| `just nb-test` | Test execution |
+| `just nb-check` | Check sanitized |
+| `just nb-strip` | Strip outputs |
+| `just notebooks-check` | Lint + sanitized |
 
 ## References
 

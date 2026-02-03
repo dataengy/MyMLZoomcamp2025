@@ -29,16 +29,29 @@ log_place() {
     echo "$LOG_PLACE"
     return
   fi
-  local src="${BASH_SOURCE[2]:-}"
-  local line="${BASH_LINENO[1]:-}"
+  local src=""
+  local line=""
   local base=""
+  local i
+  local internal_base
+  internal_base="$(basename -- "${BASH_SOURCE[0]:-}")"
+  for i in "${!BASH_SOURCE[@]}"; do
+    if [[ "$i" -eq 0 ]]; then
+      continue
+    fi
+    src="${BASH_SOURCE[$i]:-}"
+    base=$(basename -- "${src:-}")
+    if [[ "$base" != "$internal_base" && "$base" != "log.sh" ]]; then
+      line="${BASH_LINENO[$((i - 1))]:-}"
+      break
+    fi
+  done
   if [[ -n "$src" && -n "$line" ]]; then
-    base=$(basename -- "$src")
     printf '%s:%s\n' "$base" "$line"
     return
   fi
   if [[ -n "$src" ]]; then
-    basename -- "$src"
+    echo "$base"
     return
   fi
   echo "-"

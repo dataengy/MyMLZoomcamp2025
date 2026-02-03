@@ -39,6 +39,6 @@ See the main [README](../README.md#structure) for an overview of the project str
 
 - [`.ai/AGENTS.md`](../.ai/AGENTS.md) - AI agent notes and conventions
 - [`.ai/TODO.md`](../.ai/TODO.md) - Project tasks and roadmap
-- [`Makefile`](../Makefile) - Common development commands
-- [`Justfile`](../Justfile) - Complex operations and pipelines
+- [`Makefile`](../Makefile) - Common development commands (thin wrappers)
+- [`Justfile`](../Justfile) - Detailed recipes, notebook ops, and pipelines
 - [`scripts/setup/Justfile`](../scripts/setup/Justfile) - Setup command shortcuts

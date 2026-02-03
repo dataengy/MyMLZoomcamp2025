@@ -6,7 +6,7 @@ Guide for local development, testing, and contributions.
 
 - Python 3.13+
 - [uv](https://github.com/astral-sh/uv) - Python package manager
-- [just](https://github.com/casey/just) - Command runner (optional)
+- [just](https://github.com/casey/just) - Command runner (required for Makefile wrappers, recommended)
 - [direnv](https://direnv.net/) - Environment management (optional)
 - Docker & Docker Compose - For containerized services
 
@@ -18,6 +18,11 @@ Guide for local development, testing, and contributions.
 git clone <repository-url>
 cd MyMLZoomcamp2025
 ./scripts/setup/setup.sh
+```
+
+Or use the wrapper:
+```bash
+make setup
 ```
 
 With direnv:
@@ -48,6 +53,11 @@ Edit [`config/.env`](../config/.env) with your settings:
 ```bash
 make test
 ```
+
+### Make vs Just
+
+- Use `make <target>` for common workflows (setup, lint, test, serve).
+- Use `just <task>` for specific/advanced operations (notebooks, data tools, pipelines).
 
 ## Development Workflow
 
@@ -141,7 +151,7 @@ make jupyter
 
 Build and run:
 ```bash
-make docker-build
+just docker-build
 make docker-up
 ```
 
@@ -197,9 +207,8 @@ uv add --dev package-name
 
 Edit [`Makefile`](../Makefile):
 ```makefile
-my-target:
-	@echo "Running my target"
-	python scripts/my_script.py
+my-target: _
+	just my-recipe
 ```
 
 ### Add a New Just Recipe

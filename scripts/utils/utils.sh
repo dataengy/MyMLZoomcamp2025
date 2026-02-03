@@ -2,9 +2,9 @@
 
 SCRIPT_DIR=$(CDPATH="" cd -- "$(dirname -- "$0")" && pwd)
 
-if [ -f "$SCRIPT_DIR/log4sh.sh" ]; then
+if [ -f "$SCRIPT_DIR/log.sh" ]; then
   # shellcheck source=/dev/null
-  . "$SCRIPT_DIR/log4sh.sh"
+  . "$SCRIPT_DIR/log.sh"
 fi
 
 say() {

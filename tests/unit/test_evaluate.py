@@ -4,16 +4,20 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("pandas")
-pytest.importorskip("sklearn")
 
-import joblib
-from sklearn.dummy import DummyRegressor
+@pytest.fixture()
+def eval_deps():
+    pytest.require_optional("pandas", "sklearn")
+    import joblib
+    from sklearn.dummy import DummyRegressor
 
-from training.evaluate import main
+    from training.evaluate import main
+
+    return joblib, DummyRegressor, main
 
 
-def test_evaluate_writes_metrics(tmp_path: Path, monkeypatch) -> None:
+def test_evaluate_writes_metrics(tmp_path: Path, monkeypatch, eval_deps) -> None:
+    joblib, DummyRegressor, main = eval_deps
     data_dir = tmp_path / "data" / "processed"
     data_dir.mkdir(parents=True)
     data_path = data_dir / "processed_data.csv"

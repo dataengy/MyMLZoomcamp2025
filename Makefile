@@ -1,151 +1,110 @@
 # Makefile - Common operations for MyMLZoomcamp2025
-# For complex recipes with arguments, see Justfile
-# For detailed scripts, see scripts/
+# Purpose:
+# - Provide familiar `make <target>` entry points for the most common tasks.
+# - Keep the surface area small so contributors don't need to learn Just immediately.
+# - Delegate all detailed logic, arguments, and multi-step flows to `Justfile`.
+# Usage:
+# - Use `make test`, `make lint`, `make setup`, etc. for quick, standard workflows.
+# - For advanced options (flags, args, orchestration), use `just <task>`.
+# Notes:
+# - This file should remain a thin wrapper layer; avoid adding complex logic here.
+# - Target `_` ensures `just` is present so the wrappers stay reliable across fresh machines.
+# - When adding new targets, prefer delegating to `just` unless the target is trivial.
+# - Keep shell snippets minimal and non-interactive to avoid surprising CI behavior.
 
-.PHONY: all clean setup env-check lint lint-notebooks format format-python format-shell format-yaml format-just format-hooks test test-notebooks test-notebooks-sanitized qa-all train serve dagster run-dags streamlit jupyter docker-build docker-up up
+.PHONY: _ all clean setup env-check doctor lint format test train serve docker-up qa-all \
+	dagster run-dags streamlit jupyter
 
 # ============================================================================
-# Configuration
+# Common Targets (thin wrappers around Justfile)
 # ============================================================================
 
-LOG_LEVEL ?= debug
-export LOG_LEVEL
-ORCHESTRATOR ?= dagster
+# For more specific operations, use `just ...` directly (examples):
+# - Notebooks: `just lint-notebooks`, `just test-notebooks`, `just nb-check`
+# - Orchestration/UI: `just dagster`, `just run-dags`, `just streamlit`, `just jupyter`
+# - Data/ML: `just data`, `just data-process`, `just ml-test`, `just evaluate`
+# - Docker/Deploy: `just docker-build`, `just deploy-local`, `just full-pipeline`
+#
+# Detailed Justfile commands aligned with the targets in this Makefile:
+# - setup: `just setup` (full environment bootstrap)
+# - env-check: `just env-check` (verify .env vs .env.demo)
+# - doctor: `just doctor` (project health checks)
+# - clean: `just clean` (remove caches/artifacts)
+# - lint: `just lint` (ruff + pre-commit checks)
+# - format: `just format` (ruff format + hooks)
+# - test: `just test` (pytest with deps guard)
+# - train: `just train` (run training pipeline)
+# - serve: `just serve` (start FastAPI dev server)
+# - docker-up: `just docker-up` (compose up --build)
+# - dagster/run-dags/streamlit/jupyter: corresponding `just <task>`
+# - qa-all: `just qa-all-project` (full QA suite)
+# - all: `just all-lint-test` (lint + test)
 
-# ============================================================================
-# Setup and Initialization
-# ============================================================================
+# Ensure `just` is installed before delegating to Justfile recipes.
+# This stays silent when already installed to avoid noisy output in CI.
+_:
+	source ./scripts/setup/setup.sh && ensure_just
 
-# Check that config/.env matches config/.env.demo
-env-check:
-	uv run python scripts/setup/env-check.py
+# Bootstrap project dependencies and tooling.
+setup: _
+	just setup
 
-# Initial project setup (dependencies, git hooks, etc.)
-setup:
-	./scripts/setup/setup.sh
+# Validate that config/.env matches config/.env.demo.
+env-check: _
+	just env-check
 
-# Run all checks (lint + test)
-all: lint test
+# Run the project health check suite.
+doctor: _
+	just doctor
 
-# Run full QA suite via Justfile
-qa-all:
+# Remove caches and temporary build artifacts.
+clean: _
+	just clean
+
+# Run all linters for code and configs.
+lint: _
+	just lint
+
+# Format code and config files.
+format: _
+	just format
+
+# Run unit tests with the default test runner.
+test: _
+	just test
+
+# Train the default model pipeline.
+train: _
+	just train
+
+# Launch the API server in development mode.
+serve: _
+	just serve
+
+# Build and start services with Docker Compose.
+docker-up: _
+	just docker-up
+
+## Start Dagster web UI.
+#dagster: _
+#	just dagster
+
+# Run pipeline orchestration entrypoint.
+run-dags: _
+	just run-dags
+
+# Start Streamlit app.
+streamlit: _
+	just streamlit
+
+# Start Jupyter Lab.
+jupyter: _
+	just jupyter
+
+# Run the full QA suite (lint + tests + notebook checks).
+qa-all: _
 	just qa-all-project
 
-# Clean build artifacts and caches
-clean:
-	rm -rf .pytest_cache .ruff_cache .mypy_cache .cache
-
-# ============================================================================
-# Linting and Code Quality
-# ============================================================================
-
-# Lint all code (Python, Shell, YAML, Makefile)
-lint:
-	uv run ruff check .
-	pre-commit run --all-files shellcheck
-	pre-commit run --all-files checkmake
-
-# Lint Jupyter notebooks with ruff via nbqa
-lint-notebooks:
-	./scripts/notebooks/lint_notebooks.sh
-
-# ============================================================================
-# Code Formatting
-# ============================================================================
-
-# Format all code (Python, Shell, YAML, Just, hooks)
-format: format-python format-shell format-yaml format-just format-hooks
-
-# Format Python code with ruff
-format-python:
-	uv run ruff format .
-
-# Format shell scripts with shfmt
-format-shell:
-	pre-commit run --all-files shfmt
-
-# Format YAML files
-format-yaml:
-	pre-commit run --all-files yamlfmt
-
-# Format Justfile
-format-just:
-	pre-commit run --all-files just-fmt
-
-# Run general formatting hooks (EOF, trailing whitespace)
-format-hooks:
-	pre-commit run --all-files end-of-file-fixer
-	pre-commit run --all-files trailing-whitespace
-
-# ============================================================================
-# Testing
-# ============================================================================
-
-# Run unit tests with pytest
-test:
-	@if ! uv run python -c "import fastapi, pandas, dagster" >/dev/null 2>&1; then \
-		echo "Missing test deps. Syncing..."; \
-		uv sync --frozen; \
-	fi
-	uv run pytest -q
-
-# Test notebook execution with nbval
-# Note: Can be slow for large notebooks
-test-notebooks:
-	./scripts/notebooks/test_notebooks.sh
-
-# Check that notebooks have no outputs (sanitized for git)
-# This prevents committing notebook outputs that cause merge conflicts
-test-notebooks-sanitized:
-	./scripts/notebooks/check_sanitized.sh
-
-# ============================================================================
-# ML Pipeline
-# ============================================================================
-
-# Train ML model
-train:
-	PYTHONPATH=src uv run python src/training/train.py
-
-# ============================================================================
-# Services
-# ============================================================================
-
-# Start FastAPI server (development mode with hot reload)
-serve:
-	PYTHONPATH=src uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-
-# Start Dagster web UI for pipeline management
-# Uses 'dg' CLI if available, falls back to 'dagster'
-dagster:
-	@./scripts/dagster/start_dagster.sh
-
-# Orchestrator entrypoint (select via ORCHESTRATOR=dagster)
-run-dags:
-	@case "$(ORCHESTRATOR)" in \
-		dagster) $(MAKE) dagster ;; \
-		*) echo "Unknown orchestrator: $(ORCHESTRATOR)"; echo "Supported: dagster"; exit 1 ;; \
-	esac
-
-# Start Streamlit UI for model interaction
-streamlit:
-	STREAMLIT_DATA_PATH=data/processed uv run streamlit run src/ui/streamlit_app.py --server.port 8501
-
-# Start Jupyter Lab for notebook development
-jupyter:
-	uv run jupyter lab --ip=0.0.0.0 --port 8888 --no-browser
-
-# ============================================================================
-# Docker
-# ============================================================================
-
-# Build Docker image
-docker-build:
-	docker build -t mymlzoomcamp2025:latest .
-
-# Start all services with Docker Compose
-docker-up:
-	docker compose up --build
-
-# Alias for docker-up
-up: docker-up
+# Run the common "lint + test" aggregation.
+all: _
+	just all-lint-test

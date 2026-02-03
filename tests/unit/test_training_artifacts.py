@@ -2,12 +2,17 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("pandas")
 
-from training.train import main
+@pytest.fixture()
+def training_main():
+    pytest.require_optional("pandas")
+    from training.train import main
+
+    return main
 
 
-def test_training_writes_baseline_artifacts(tmp_path: Path, monkeypatch) -> None:
+def test_training_writes_baseline_artifacts(tmp_path: Path, monkeypatch, training_main) -> None:
+    main = training_main
     data_dir = tmp_path / "data" / "processed"
     data_dir.mkdir(parents=True)
     data_path = data_dir / "processed_data.csv"

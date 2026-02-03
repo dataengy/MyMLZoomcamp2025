@@ -1,7 +1,17 @@
-# Justfile - Complex recipes with arguments
-# For simple common operations, see Makefile
-# Complex logic lives in scripts/ directory
-# Setup helpers live in scripts/setup/Justfile (run with: just -f scripts/setup/Justfile <task>)
+# Justfile - Detailed project recipes and advanced workflows
+# Purpose:
+# - Source of truth for task logic: arguments, branching, orchestration, and composition.
+# - Keeps complex commands readable and centralized, with heavier logic in `scripts/`.
+# - Provides richer ergonomics (args, defaults, aliases) than Make for the repo.
+# Usage:
+# - Prefer `just <task>` for anything beyond the small wrapper targets in the Makefile.
+# - Many tasks accept env vars or args documented inline with each recipe.
+# Notes:
+# - Add new detailed recipes here; keep Makefile minimal and delegative.
+# - Setup helpers live in scripts/setup/Justfile (run with: just -f scripts/setup/Justfile <task>)
+# - Keep recipes composable so higher-level targets can chain them predictably.
+# - Prefer calling `scripts/` helpers for complex logic to keep recipes readable.
+# - Document non-obvious env vars or side effects directly above each recipe.
 
 # ============================================================================
 # Configuration
@@ -14,10 +24,15 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # Example: TRACE=1 just nb-check
 TRACE := env_var_or_default("TRACE", "0")
 
+# Logging and orchestration defaults
+export LOG_LEVEL := env_var_or_default("LOG_LEVEL", "debug")
+export ORCHESTRATOR := env_var_or_default("ORCHESTRATOR", "dagster")
+
 # Conditionally enable bash tracing
 _trace := if TRACE == "1" { "set -x;" } else { "" }
 
 # Project paths - centralized for DRY
+#todo: store these also in .env.common
 SCRIPTS_DIR := "scripts"
 NOTEBOOKS_DIR := "notebooks"
 NOTEBOOKS_SCRIPTS := SCRIPTS_DIR / "notebooks"
@@ -45,6 +60,24 @@ setup-dev:
     uv sync
     direnv allow && direnv reload
     git remote -v
+
+# Initial project setup (dependencies, git hooks, etc.)
+setup:
+    ./scripts/setup/setup.sh
+
+# Clean build artifacts and caches
+clean:
+    rm -rf .pytest_cache .ruff_cache .mypy_cache .cache
+
+# ============================================================================
+# Linting and Code Quality
+# ============================================================================
+
+# Lint all code (Python, Shell, YAML, Makefile)
+lint:
+    uv run ruff check .
+    pre-commit run --all-files shellcheck
+    pre-commit run --all-files checkmake
 
 # ============================================================================
 # Data Pipeline Recipes
@@ -114,9 +147,53 @@ deploy-local:
 env-check:
     uv run python scripts/setup/env-check.py
 
+# Run unit tests with pytest
+test:
+    @if ! uv run python -c "import fastapi, pandas, dagster" >/dev/null 2>&1; then \
+    	echo "Missing test deps. Syncing..."; \
+    	uv sync --frozen; \
+    fi
+    uv run pytest -q
+
 # Fast test run (quiet mode)
 test-fast:
     uv run pytest -q
+
+# ============================================================================
+# Doctor / Maintenance
+# ============================================================================
+
+# Summary project health check
+doctor:
+    ./scripts/doctor/loc-02-project-health-check.sh
+
+# Codex skills sanity check (dry-run install)
+codex-check:
+    scripts/codex/install_local_skills.sh --dry-run
+
+# Run legacy GitHub push doctor (interactive)
+github-push *args:
+    just -f scripts/doctor/Justfile github-push {{args}}
+
+# Sync branch with remote and push (auto-stash + rebase supported)
+sync-push *args:
+    just -f scripts/doctor/Justfile sync-push {{args}}
+
+# Run project health check (supports --fix/--verbose)
+health-check *args:
+    just -f scripts/doctor/Justfile health-check {{args}}
+
+# Verify Docker engine/compose access
+docker-check *args:
+    just -f scripts/doctor/Justfile docker-check {{args}}
+
+# Run tests with safe defaults (or pass a custom command)
+test-safe *args:
+    just -f scripts/doctor/Justfile test-safe {{args}}
+
+# Check local web tool URL responsiveness (Dagster UI, etc.)
+web-tool-check *args:
+    just -f scripts/doctor/Justfile web-tool-check {{args}}
 
 # ============================================================================
 # Notebook Management
@@ -153,13 +230,13 @@ notebooks-check: lint-notebooks test-notebooks-sanitized
 # Notebook Workflow Aliases (short commands)
 # ============================================================================
 
-# Alias: lint notebooks
+# Alias: lint notebooks (shortcut for lint-notebooks)
 nb-lint: lint-notebooks
 
-# Alias: format notebooks
+# Alias: format notebooks (shortcut for format-notebooks)
 nb-fmt: format-notebooks
 
-# Alias: test notebooks
+# Alias: test notebooks (shortcut for test-notebooks)
 nb-test: test-notebooks
 
 # Alias: check notebooks (lint + sanitized)
@@ -172,8 +249,183 @@ nb-strip: strip-notebooks
 # QA Aggregation
 # ============================================================================
 
-# Run all QA checks (lint + tests + notebook QA + data/ML sanity tests)
+# Run all QA checks (lint + tests + notebook QA + data/ML sanity tests).
+# This is the canonical QA entry point used by Makefile's `qa-all`.
 qa-all-project: lint-notebooks format-notebooks test-notebooks test-notebooks-sanitized strip-notebooks data-test ml-test test-fast
-    make lint
-    make test
+    just lint
+    just test
     @echo "✓ QA (all) completed successfully!"
+
+# ============================================================================
+# Code Formatting
+# ============================================================================
+
+# Format all code (Python, Shell, YAML, Just, hooks)
+format: format-python format-shell format-yaml format-just format-hooks
+
+# Format Python code with ruff
+format-python:
+    uv run ruff format .
+
+# Format shell scripts with shfmt
+format-shell:
+    pre-commit run --all-files shfmt
+
+# Format YAML files
+format-yaml:
+    pre-commit run --all-files yamlfmt
+
+# Format Justfile
+format-just:
+    pre-commit run --all-files just-fmt
+
+# Run general formatting hooks (EOF, trailing whitespace)
+format-hooks:
+    pre-commit run --all-files end-of-file-fixer
+    pre-commit run --all-files trailing-whitespace
+
+# ============================================================================
+# ML Pipeline
+# ============================================================================
+
+# Train ML model
+train:
+    PYTHONPATH=src uv run python src/training/train.py
+
+# ============================================================================
+# Services
+# ============================================================================
+
+# Start FastAPI server (development mode with hot reload)
+serve:
+    PYTHONPATH=src uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Start Dagster web UI for pipeline management
+# Uses 'dg' CLI if available, falls back to 'dagster'
+dagster:
+    @./scripts/dagster/start_dagster.sh
+
+# Orchestrator entrypoint (select via ORCHESTRATOR=dagster)
+run-dags:
+    @case "${ORCHESTRATOR}" in \
+    	dagster) just dagster ;; \
+    	*) echo "Unknown orchestrator: $(ORCHESTRATOR)"; echo "Supported: dagster"; exit 1 ;; \
+    esac
+
+# Start Streamlit UI for model interaction
+streamlit:
+    STREAMLIT_DATA_PATH=data/processed uv run streamlit run src/ui/streamlit_app.py --server.port 8501
+
+# Start Jupyter Lab for notebook development
+jupyter:
+    uv run jupyter lab --ip=0.0.0.0 --port 8888 --no-browser
+
+# ============================================================================
+# Docker
+# ============================================================================
+
+# Build Docker image
+docker-build:
+    docker build -t mymlzoomcamp2025:latest .
+
+# Start all services with Docker Compose
+docker-up:
+    docker compose up --build
+
+# Alias for docker-up
+up: docker-up
+
+# ============================================================================
+# Common Aggregations
+# ============================================================================
+
+# Run all checks (lint + test) in parallel for faster feedback.
+all-lint-test:
+    @{{_trace}} \
+    set +e; \
+    (just lint) & lint_pid=$$!; \
+    (just test) & test_pid=$$!; \
+    wait $$lint_pid; lint_status=$$?; \
+    wait $$test_pid; test_status=$$?; \
+    if [ $$lint_status -ne 0 ] || [ $$test_status -ne 0 ]; then \
+        exit 1; \
+    fi
+
+# Backwards-compatible alias.
+all: all-lint-test
+
+# ============================================================================
+# Makefile Mirrors (invoke Make from Just)
+# ============================================================================
+
+# Makefile wrapper: make setup
+make-setup:
+    make setup
+
+# Makefile wrapper: make env-check
+make-env-check:
+    make env-check
+
+# Makefile wrapper: make doctor
+make-doctor:
+    make doctor
+
+# Makefile wrapper: make clean
+make-clean:
+    make clean
+
+# Makefile wrapper: make lint
+make-lint:
+    make lint
+
+# Makefile wrapper: make format
+make-format:
+    make format
+
+# Makefile wrapper: make test
+make-test:
+    make test
+
+# Makefile wrapper: make train
+make-train:
+    make train
+
+# Makefile wrapper: make serve
+make-serve:
+    make serve
+
+# Makefile wrapper: make dagster
+make-dagster:
+    make dagster
+
+# Makefile wrapper: make run-dags
+make-run-dags:
+    make run-dags
+
+# Makefile wrapper: make streamlit
+make-streamlit:
+    make streamlit
+
+# Makefile wrapper: make jupyter
+make-jupyter:
+    make jupyter
+
+# Makefile wrapper: make docker-up
+make-docker-up:
+    make docker-up
+
+# Makefile wrapper: make qa-all
+make-qa-all:
+    make qa-all
+
+# Makefile wrapper: make all
+make-all:
+    make all
+
+# ============================================================================
+# Utility Shortcuts
+# ============================================================================
+
+# Install Codex skills (local repo) via scripts/codex/Justfile
+codex-install-skills *args:
+    just -f scripts/codex/Justfile install-skills {{args}}

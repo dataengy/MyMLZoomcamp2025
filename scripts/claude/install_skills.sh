@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==================================================================
-# install_skills.sh — copy .ai/skills/ → .claude/skills/
+# install_skills.sh — copy .ai/.codex/skills/ → .claude/skills/
 #
 # Assembles SKILL.md on-the-fly from skill.yml + prompt.md so that
 # Claude Code discovers each skill automatically.
@@ -23,10 +23,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # shellcheck source=/dev/null
-source "$PROJECT_ROOT/scripts/utils/log4bash.sh"
+source "$PROJECT_ROOT/scripts/utils/log.sh"
 
 # ── paths ───────────────────────────────────────────────────────
-SRC="$PROJECT_ROOT/.ai/skills"
+SRC="$PROJECT_ROOT/.ai/.codex/skills"
 
 # ── defaults ────────────────────────────────────────────────────
 MODE=local # local | global

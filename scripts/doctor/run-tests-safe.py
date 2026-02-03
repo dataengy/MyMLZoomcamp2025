@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 
 def _build_env() -> dict[str, str]:
@@ -21,7 +22,8 @@ def _build_env() -> dict[str, str]:
 def main(argv: list[str] | None = None) -> int:
     args = list(argv) if argv is not None else sys.argv[1:]
     cmd = args or ["make", "test"]
-    return subprocess.call(cmd, env=_build_env())
+    repo_root = Path(__file__).resolve().parents[2]
+    return subprocess.call(cmd, env=_build_env(), cwd=repo_root)
 
 
 if __name__ == "__main__":
