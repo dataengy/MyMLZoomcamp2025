@@ -8,10 +8,17 @@ from typing import Iterable, TYPE_CHECKING
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+from loguru import logger
+
 if TYPE_CHECKING:
     import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_PATH = PROJECT_ROOT / "src"
+if str(SRC_PATH) not in sys.path:
+    sys.path.insert(0, str(SRC_PATH))
+
+from config.logging import configure_logging  # noqa: E402
 DEFAULT_CACHE_DIR = PROJECT_ROOT / "data" / "raw"
 
 
@@ -135,6 +142,7 @@ def _finish_progress(downloaded: int, total: int) -> None:
 
 
 def main() -> None:
+    configure_logging()
     parser = argparse.ArgumentParser(
         description="Download (optional) and load a dataset such as NYC Taxi parquet/csv files.",
     )
@@ -185,19 +193,19 @@ def main() -> None:
     args = parser.parse_args()
 
     cache_dir = Path(args.cache_dir)
-    print(f"Source: {args.source}")
-    print(f"Cache dir: {cache_dir}")
+    logger.info("Source: {}", args.source)
+    logger.info("Cache dir: {}", cache_dir)
     source_path = _resolve_source(args.source, cache_dir, args.force_download)
     if not source_path.exists():
         raise FileNotFoundError(f"Source not found: {source_path}")
 
     fmt = args.format or _infer_format(source_path)
     columns = _normalize_columns(args.columns)
-    print(f"Format: {fmt}")
+    logger.info("Format: {}", fmt)
     if args.output:
-        print(f"Output: {args.output}")
+        logger.info("Output: {}", args.output)
     if columns:
-        print(f"Column filter: {_format_columns(columns)}")
+        logger.info("Column filter: {}", _format_columns(columns))
 
     df = _read_dataframe(source_path, fmt, columns, args.nrows)
 

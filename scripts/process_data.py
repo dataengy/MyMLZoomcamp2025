@@ -2,10 +2,19 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
+from loguru import logger
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_PATH = PROJECT_ROOT / "src"
+if str(SRC_PATH) not in sys.path:
+    sys.path.insert(0, str(SRC_PATH))
+
+from config.logging import configure_logging  # noqa: E402
 
 
 def _load_files(files: Iterable[Path], fmt: str) -> pd.DataFrame:
@@ -163,6 +172,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_logging()
     args = parse_args(argv)
     parquet_files = list(args.input_dir.glob("*.parquet"))
     csv_files = list(args.input_dir.glob("*.csv"))
@@ -178,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
         files = csv_files
 
     if not files:
-        print(f"No input files found in {args.input_dir}")
+        logger.warning("No input files found in {}", args.input_dir)
         return 1
 
     df = _load_files(files, fmt)
@@ -189,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     df = _engineer_features(df)
     model_df, features = _select_features(df)
     _write_outputs(model_df, features, args.output_dir, args.output_format)
-    print(f"Processed data saved to {args.output_dir}")
+    logger.info("Processed data saved to {}", args.output_dir)
     return 0
 
 
