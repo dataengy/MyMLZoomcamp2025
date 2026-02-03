@@ -1,4 +1,4 @@
-.PHONY: setup lint format test train serve run-dags streamlit jupyter docker-build docker-up up data data-download data-process data-test ml-test evaluate deploy-local full-pipeline
+.PHONY: setup lint format test train serve run-dags streamlit jupyter docker-build docker-up up
 
 LOG_LEVEL ?= debug
 export LOG_LEVEL
@@ -7,10 +7,18 @@ setup:
 	./scripts/setup.sh
 
 lint:
-	ruff check .
+	uv run ruff check .
+	pre-commit run --all-files shellcheck
+	pre-commit run --all-files checkmake
+	pre-commit run --all-files yamllint
 
 format:
-	ruff format .
+	uv run ruff format .
+	pre-commit run --all-files shfmt
+	pre-commit run --all-files yamlfmt
+	pre-commit run --all-files just-fmt
+	pre-commit run --all-files end-of-file-fixer
+	pre-commit run --all-files trailing-whitespace
 
 test:
 	@if ! uv run python -c "import fastapi, pandas, dagster" >/dev/null 2>&1; then \
@@ -49,28 +57,3 @@ docker-up:
 	docker compose up --build
 
 up: docker-up
-
-# Pipeline steps
-data:
-	@bash -c 'source scripts/utils/Makefile-utils.sh && run_data'
-
-data-download:
-	uv run python scripts/data_tools/download_data.py
-
-data-process:
-	uv run python scripts/data_tools/process_data.py
-
-data-test:
-	uv run python tests/bash/simple_data_test.py
-
-ml-test:
-	uv run python tests/bash/simple_ml_test.py
-
-evaluate:
-	uv run python src/training/evaluate.py
-
-deploy-local:
-	@echo "Local deploy placeholder. Use 'make serve' or 'make docker-up' to run the API."
-
-full-pipeline: data train evaluate deploy-local
-	@echo "Full pipeline executed"

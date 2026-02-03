@@ -179,14 +179,14 @@ Justfile
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
-/data/raw/
+
 /.ai/
+
 /.tmp_dagster_home_*
+
 /logs/
-/data/processed/data_summary.txt
-/data/processed/features.txt
-/data/processed/processed_data.csv
-/models/model.json
-/reports/evaluation.json
-/reports/metrics.json
+/data/raw/
+/data/processed/
+/models/
+/reports/
 /.claude/settings.local.json

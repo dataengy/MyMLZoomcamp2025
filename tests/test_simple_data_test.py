@@ -7,7 +7,7 @@ from pathlib import Path
 
 def test_simple_data_test_creates_files(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    script_path = repo_root / "scripts" / "simple_data_test.py"
+    script_path = repo_root / "tests" / "bash" / "simple_data_test.py"
 
     result = subprocess.run(
         [sys.executable, str(script_path)],

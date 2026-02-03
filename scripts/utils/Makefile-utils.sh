@@ -69,8 +69,8 @@ run_data() {
   fi
 
   log_info "Downloading data"
-  uv run python scripts/download_data.py "${download_args[@]}"
+  uv run python scripts/data_tools/download_data.py "${download_args[@]}"
   log_info "Processing data"
-  uv run python scripts/process_data.py "${process_args[@]}"
+  uv run python scripts/data_tools/process_data.py "${process_args[@]}"
   log_info "Data step complete"
 }

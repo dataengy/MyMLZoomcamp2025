@@ -26,8 +26,8 @@ Notes:
 - API tests require `fastapi` (installed via project deps).
 - Orchestration tests require `dagster` (installed via project deps).
 - Docker test is skipped unless `DOCKER_TESTS=1` and Docker is available.
-- Environment variables live in `config/.env` (copy from `config/.env.demo`).
-- Logging is configured via `config/config.yml` and `LOG_LEVEL` in `config/.env`.
+- Environment variables live in [`config/.env`](config/.env) (copy from [`config/.env.demo`](config/.env.demo)).
+- Logging is configured via [`config/config.yml`](config/config.yml) and `LOG_LEVEL` in [`config/.env`](config/.env).
 
 ## Local services
 
@@ -56,23 +56,61 @@ make jupyter
 ```
 
 Notes:
-- Streamlit reads from `data/processed` by default; set `STREAMLIT_DATA_PATH` if needed.
-- Set `JUPYTER_TOKEN` in `config/.env` to secure Jupyter (empty token disables auth).
+- Streamlit reads from [`data/processed`](data/processed) by default; set `STREAMLIT_DATA_PATH` if needed.
+- Set `JUPYTER_TOKEN` in [`config/.env`](config/.env) to secure Jupyter (empty token disables auth).
 
 Docker equivalents:
 
 ```bash
-docker compose up api
-docker compose up dagster
-docker compose up streamlit
-docker compose up jupyter
+docker compose -f deploy/docker-compose.yml up api
+docker compose -f deploy/docker-compose.yml up dagster
+docker compose -f deploy/docker-compose.yml up streamlit
+docker compose -f deploy/docker-compose.yml up jupyter
 ```
 
-Or use the helper:
+Or use the helper [`docker-start.sh`](docker-start.sh):
 
 ```bash
-./docker-run.sh
+# CLI mode (direct service start)
+./docker-start.sh api
+./docker-start.sh -d streamlit
+./docker-start.sh -i api
+
+# Interactive menu mode
+./docker-start.sh --menu
 ```
+
+## Docker helper script
+
+The [`docker-start.sh`](docker-start.sh) script provides a convenient interface for managing Docker services:
+
+**CLI mode:**
+```bash
+./docker-start.sh [options] [service]
+
+Options:
+  -b, --build           Build before starting (default)
+  --no-build            Skip build
+  -n, --no-cache        Build with --no-cache
+  -d, --detach          Run in background
+  -i, --interactive     Attach to a service with exec
+  -m, --menu            Interactive menu mode
+  -c, --command CMD     Command to run (with --interactive)
+  -h, --help            Show this help
+```
+
+**Interactive menu mode:**
+```bash
+./docker-start.sh --menu
+```
+
+The menu provides options to:
+- Start services (foreground/background)
+- Open interactive shells in containers
+- Build services (with/without cache)
+- Stop all services
+- View logs
+- And more
 
 ## Dev tooling
 
@@ -87,17 +125,17 @@ pre-commit run --all-files
 
 Use the scripts below for data setup and sanity checks:
 
-- `scripts/download_data.py` - download NYC Taxi parquet files.
-- `scripts/process_data.py` - clean + feature engineer the NYC Taxi data.
-- `scripts/simple_data_test.py` - generate synthetic data and run a basic pipeline check.
-- `scripts/simple_ml_test.py` - train a tiny linear model on processed synthetic data.
+- [`scripts/data_tools/download_data.py`](scripts/data_tools/download_data.py) - download NYC Taxi parquet files.
+- [`scripts/data_tools/process_data.py`](scripts/data_tools/process_data.py) - clean + feature engineer the NYC Taxi data.
+- [`tests/bash/simple_data_test.py`](tests/bash/simple_data_test.py) - generate synthetic data and run a basic pipeline check.
+- [`tests/bash/simple_ml_test.py`](tests/bash/simple_ml_test.py) - train a tiny linear model on processed synthetic data.
 
-Use `scripts/load_data.py` to load datasets like NYC Taxi parquet/csv/json files from a URL or local path.
+Use [`scripts/data_tools/load_data.py`](scripts/data_tools/load_data.py) to load datasets like NYC Taxi parquet/csv/json files from a URL or local path.
 
 Examples:
 
 ```bash
-python scripts/load_data.py \
+python scripts/data_tools/load_data.py \
   --source https://example.com/yellow_tripdata_2024-01.parquet \
   --columns "tpep_pickup_datetime,tpep_dropoff_datetime,trip_distance,fare_amount" \
   --nrows 100000 \
@@ -105,7 +143,7 @@ python scripts/load_data.py \
 ```
 
 ```bash
-python scripts/load_data.py \
+python scripts/data_tools/load_data.py \
   --source data/raw/sample.csv \
   --output data/processed/sample.csv \
   --show-head
@@ -113,22 +151,44 @@ python scripts/load_data.py \
 
 ## Structure
 
-- `src/api` - FastAPI app
-- `src/dags` - Dagster asset definitions
-- `src/ui` - Streamlit app
-- `src/training` - training placeholder
-- `scripts` - utility scripts
-- `tests` - test suite
+- [`src/api`](src/api) - FastAPI app
+- [`src/dags`](src/dags) - Dagster asset definitions
+- [`src/ui`](src/ui) - Streamlit app
+- [`src/training`](src/training) - training placeholder
+- [`scripts/`](scripts/) - utility scripts
+- [`tests/`](tests/) - test suite
+- [`notebooks/`](notebooks/) - Jupyter notebooks for R&D and experimentation
+- [`docs/`](docs/) - detailed project documentation
+- [`.ai/`](.ai/) - AI agent artifacts and documentation (see [`.ai/AGENTS.md`](.ai/AGENTS.md))
 
-## Make/Just targets
+## Make vs Just
+
+Use the [`Makefile`](Makefile) for the main, common ops. Use the [`Justfile`](Justfile) for more complex or speed-oriented workflows.
+
+### Makefile (common ops)
 
 Common targets:
 
-- `make data-download` / `just data-download`
-- `make data-process` / `just data-process`
-- `make data-test` / `just data-test`
-- `make ml-test` / `just ml-test`
-- `make run-dags` / `just run-dags`
-- `make streamlit` / `just streamlit`
-- `make jupyter` / `just jupyter`
-- `make up` / `just up`
+- `make setup`
+- `make lint`
+- `make format`
+- `make test`
+- `make train`
+- `make serve`
+- `make run-dags`
+- `make streamlit`
+- `make jupyter`
+- `make docker-build`
+- `make docker-up` / `make up`
+
+### Justfile (complex / fast ops)
+
+- `just setup-dev`
+- `just data` (requires `DATA_SOURCE`, optional `DATA_COLUMNS`, `DATA_NROWS`, `DATA_OUTPUT`)
+- `just data-download`
+- `just data-process`
+- `just data-test`
+- `just ml-test`
+- `just evaluate`
+- `just full-pipeline`
+- `just test-fast`

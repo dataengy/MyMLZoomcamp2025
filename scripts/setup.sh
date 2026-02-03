@@ -6,7 +6,7 @@ PYTHON_VERSION="${PYTHON_VERSION:-3.13}"
 UV_SYNC_FLAGS="${UV_SYNC_FLAGS:---frozen}"
 ALLOW_DIRENV="${ALLOW_DIRENV:-0}"
 
-. "$PROJECT_ROOT/scripts/utils.sh"
+. "$PROJECT_ROOT/scripts/utils/utils.sh"
 
 ensure_path_for_uv() {
   if have uv; then

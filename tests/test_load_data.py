@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scripts import load_data
+from scripts.data_tools import load_data
 
 
 def test_infer_format_handles_common_extensions(tmp_path: Path) -> None:

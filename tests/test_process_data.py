@@ -6,7 +6,7 @@ import pytest
 
 pytest.importorskip("pandas")
 
-from scripts.process_data import main
+from scripts.data_tools.process_data import main
 
 
 def test_process_data_writes_outputs_csv(tmp_path: Path) -> None:

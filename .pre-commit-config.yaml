@@ -11,3 +11,42 @@ repos:
         entry: uv run ruff format
         language: system
         types: [python]
+      - id: just-fmt
+        name: just --fmt --check
+        entry: just --fmt --check
+        language: system
+        files: (^|/)(Justfile|.*\.just)$
+        pass_filenames: false
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        files: \.sh$
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.10.0-1
+    hooks:
+      - id: shfmt
+        args: ["-w", "-i", "2", "-ci"]
+        files: \.sh$
+  - repo: https://github.com/mrtazz/checkmake
+    rev: 0.2.2
+    hooks:
+      - id: checkmake
+        files: (^|/)(Makefile|.*\.mk)$
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        files: \.(yml|yaml)$
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 0.2.1
+    hooks:
+      - id: yamlfmt
+        files: \.(yml|yaml)$
