@@ -12,7 +12,10 @@ def _load_files(files: Iterable[Path], fmt: str) -> pd.DataFrame:
     frames: list[pd.DataFrame] = []
     for path in files:
         if fmt == "parquet":
-            frames.append(pd.read_parquet(path))
+            import duckdb
+
+            with duckdb.connect() as conn:
+                frames.append(conn.execute("SELECT * FROM read_parquet(?)", [str(path)]).df())
         elif fmt == "csv":
             frames.append(pd.read_csv(path))
         else:
@@ -153,7 +156,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--output-format",
         choices=["parquet", "csv"],
-        default="parquet",
+        default="csv",
         help="Output format for processed data",
     )
     return parser.parse_args(argv)

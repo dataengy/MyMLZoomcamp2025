@@ -50,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--data",
         type=Path,
-        default=Path("data/processed/processed_data.parquet"),
+        default=Path("data/processed/processed_data.csv"),
         help="Path to processed data",
     )
     parser.add_argument(
