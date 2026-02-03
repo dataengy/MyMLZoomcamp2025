@@ -13,6 +13,9 @@ dependencies = [
     "jupyterlab>=4.5.3",
     "loguru>=0.7.3",
     "matplotlib>=3.10.8",
+    "nbqa>=1.8.5",
+    "nbstripout>=0.7.1",
+    "nbval>=0.11.0",
     "numpy>=2.0.0",
     "pandas>=2.2.0,<3.0.0",
     "pyyaml>=6.0.2",
@@ -26,3 +29,31 @@ dependencies = [
     "streamlit>=1.42.0",
     "uvicorn>=0.34.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "notebook: marks tests for Jupyter notebooks",
+    "slow: marks tests as slow",
+]
+
+[tool.nbqa.addopts]
+ruff = ["--extend-ignore=E501,F401,F841"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]  # Line length handled by formatter
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
