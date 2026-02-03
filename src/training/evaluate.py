@@ -10,6 +10,7 @@ from config.logging import configure_logging, log
 
 configure_logging()
 
+
 def _infer_format(path: Path) -> str:
     suffix = path.suffix.lower()
     if suffix == ".parquet":

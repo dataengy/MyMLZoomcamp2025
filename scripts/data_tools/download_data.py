@@ -25,7 +25,9 @@ DEFAULT_YEAR = 2024
 DEFAULT_MONTHS = [1, 2, 3]
 
 
-def get_data_url(data_type: str, year: int, month: int, base_url: str = NYC_TAXI_BASE_URL) -> str:
+def get_data_url(
+    data_type: str, year: int, month: int, base_url: str = NYC_TAXI_BASE_URL
+) -> str:
     filename = f"{data_type}_{year}-{month:02d}.parquet"
     return urljoin(base_url, filename)
 

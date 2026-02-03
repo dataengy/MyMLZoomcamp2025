@@ -17,6 +17,7 @@ if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
 from config.logging import configure_logging, log  # noqa: E402
+
 DEFAULT_CACHE_DIR = PROJECT_ROOT / "data" / "raw"
 
 
@@ -207,7 +208,9 @@ def main() -> None:
 
     df = _read_dataframe(source_path, fmt, columns, args.nrows)
 
-    log.info("Loaded {} rows x {} columns from {}", len(df), len(df.columns), source_path)
+    log.info(
+        "Loaded {} rows x {} columns from {}", len(df), len(df.columns), source_path
+    )
     log.debug("Columns ({}): {}", len(df.columns), _format_columns(list(df.columns)))
 
     if args.show_head:

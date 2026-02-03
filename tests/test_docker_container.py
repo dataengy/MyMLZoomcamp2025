@@ -27,8 +27,24 @@ def _wait_for_health(url: str, timeout_seconds: int = 30) -> bool:
     reason="Docker tests disabled (set DOCKER_TESTS=1) or docker not available.",
 )
 def test_docker_container_health() -> None:
-    compose_args = ["docker", "compose", "up", "-d", "--build", "api"]
-    down_args = ["docker", "compose", "down", "--remove-orphans"]
+    compose_args = [
+        "docker",
+        "compose",
+        "-f",
+        "deploy/docker-compose.yml",
+        "up",
+        "-d",
+        "--build",
+        "api",
+    ]
+    down_args = [
+        "docker",
+        "compose",
+        "-f",
+        "deploy/docker-compose.yml",
+        "down",
+        "--remove-orphans",
+    ]
 
     try:
         try:

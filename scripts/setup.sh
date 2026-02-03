@@ -6,6 +6,7 @@ PYTHON_VERSION="${PYTHON_VERSION:-3.13}"
 UV_SYNC_FLAGS="${UV_SYNC_FLAGS:---frozen}"
 ALLOW_DIRENV="${ALLOW_DIRENV:-0}"
 
+# shellcheck disable=SC1091
 . "$PROJECT_ROOT/scripts/utils/utils.sh"
 
 ensure_path_for_uv() {
@@ -61,6 +62,7 @@ main() {
   fi
 
   (cd "$PROJECT_ROOT" && uv python install "$PYTHON_VERSION")
+  # shellcheck disable=SC2086
   (cd "$PROJECT_ROOT" && uv sync $UV_SYNC_FLAGS)
 
   if [ -f "$PROJECT_ROOT/.envrc" ]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SCRIPT_DIR=$(CDPATH="" cd -- "$(dirname -- "$0")" && pwd)
 
 if [ -f "$SCRIPT_DIR/log4sh.sh" ]; then
   # shellcheck source=/dev/null

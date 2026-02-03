@@ -1,4 +1,4 @@
-.PHONY: setup lint format test train serve run-dags streamlit jupyter docker-build docker-up up
+.PHONY: all clean setup lint format format-python format-shell format-yaml format-just format-hooks test train serve run-dags streamlit jupyter docker-build docker-up up
 
 LOG_LEVEL ?= debug
 export LOG_LEVEL
@@ -6,17 +6,32 @@ export LOG_LEVEL
 setup:
 	./scripts/setup.sh
 
+all: lint test
+
+clean:
+	rm -rf .pytest_cache .ruff_cache .mypy_cache .cache
+
 lint:
 	uv run ruff check .
 	pre-commit run --all-files shellcheck
 	pre-commit run --all-files checkmake
 	pre-commit run --all-files yamllint
 
-format:
+format: format-python format-shell format-yaml format-just format-hooks
+
+format-python:
 	uv run ruff format .
+
+format-shell:
 	pre-commit run --all-files shfmt
+
+format-yaml:
 	pre-commit run --all-files yamlfmt
+
+format-just:
 	pre-commit run --all-files just-fmt
+
+format-hooks:
 	pre-commit run --all-files end-of-file-fixer
 	pre-commit run --all-files trailing-whitespace
 

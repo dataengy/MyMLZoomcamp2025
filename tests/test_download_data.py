@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from scripts.data_tools.download_data import download_files, get_data_url, resolve_months
+from scripts.data_tools.download_data import (
+    download_files,
+    get_data_url,
+    resolve_months,
+)
 
 
 def test_get_data_url_formats_month() -> None:

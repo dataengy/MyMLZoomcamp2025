@@ -5,10 +5,11 @@ set -eu
 # Docker Start Script - Function-based with CLI and Interactive Mode
 # ============================================================================
 
-ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR=$(CDPATH="" cd -- "$(dirname -- "$0")" && pwd)
 COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.yml"
 
 # Source utilities
+# shellcheck disable=SC1091
 . "$ROOT_DIR/scripts/utils/utils.sh"
 
 # ============================================================================
@@ -102,32 +103,32 @@ check_dependencies() {
 parse_args() {
   while [ $# -gt 0 ]; do
     case "$1" in
-      -b|--build)
+      -b | --build)
         BUILD=1
         ;;
       --no-build)
         BUILD=0
         ;;
-      -n|--no-cache)
+      -n | --no-cache)
         NO_CACHE=1
         ;;
-      -d|--detach)
+      -d | --detach)
         DETACH=1
         ;;
-      -i|--interactive)
+      -i | --interactive)
         INTERACTIVE=1
         ;;
-      -m|--menu)
+      -m | --menu)
         MENU_MODE=1
         ;;
-      -c|--command)
+      -c | --command)
         shift
         COMMAND=${1:-}
         if [ -z "$COMMAND" ]; then
           fail "--command requires a value"
         fi
         ;;
-      -h|--help)
+      -h | --help)
         usage
         exit 0
         ;;
@@ -297,7 +298,10 @@ SERVICES
     3) SERVICE="streamlit" ;;
     4) SERVICE="jupyter" ;;
     0) return ;;
-    *) warn "Invalid choice"; return ;;
+    *)
+      warn "Invalid choice"
+      return
+      ;;
   esac
 
   log "Starting $SERVICE in background for shell access"
@@ -328,7 +332,10 @@ SERVICES
     4) compose logs -f jupyter ;;
     5) compose logs -f ;;
     0) return ;;
-    *) warn "Invalid choice"; return ;;
+    *)
+      warn "Invalid choice"
+      return
+      ;;
   esac
 }
 

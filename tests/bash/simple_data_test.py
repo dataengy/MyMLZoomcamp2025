@@ -121,9 +121,7 @@ def basic_data_validation(data: list[dict]) -> dict:
                 [f"Record {i}: {issue}" for issue in issues]
             )
 
-    validation_results["validation_passed"] = (
-        validation_results["invalid_records"] == 0
-    )
+    validation_results["validation_passed"] = validation_results["invalid_records"] == 0
 
     return validation_results
 

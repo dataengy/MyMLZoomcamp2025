@@ -99,6 +99,14 @@ See [`../scripts/data_tools/`](../scripts/data_tools/) for data loading utilitie
 - [`process_data.py`](../scripts/data_tools/process_data.py) - Clean and transform data
 - [`load_data.py`](../scripts/data_tools/load_data.py) - Generic data loader
 
+## Troubleshooting
+
+Having issues? See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common problems and solutions:
+- ModuleNotFoundError
+- Kernel issues
+- Import errors
+- Performance problems
+
 ## References
 
 - Project documentation: [`../docs/`](../docs/)

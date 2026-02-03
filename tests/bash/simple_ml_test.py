@@ -20,9 +20,16 @@ class SimpleLinearRegression:
         self.bias: float | None = None
         self.feature_names: list[str] | None = None
 
-    def fit(self, X: List[List[float]], y: List[float], feature_names: List[str] | None = None) -> None:
+    def fit(
+        self,
+        X: List[List[float]],
+        y: List[float],
+        feature_names: List[str] | None = None,
+    ) -> None:
         """Train the linear regression model using normal equation."""
-        print(f"Training linear regression on {len(X)} samples with {len(X[0])} features...")
+        print(
+            f"Training linear regression on {len(X)} samples with {len(X[0])} features..."
+        )
 
         self.feature_names = feature_names or [f"feature_{i}" for i in range(len(X[0]))]
 
@@ -56,9 +63,13 @@ class SimpleLinearRegression:
         return predictions
 
     def _transpose(self, matrix: List[List[float]]) -> List[List[float]]:
-        return [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
+        return [
+            [matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))
+        ]
 
-    def _matrix_multiply(self, A: List[List[float]], B: List[List[float]]) -> List[List[float]]:
+    def _matrix_multiply(
+        self, A: List[List[float]], B: List[List[float]]
+    ) -> List[List[float]]:
         rows_A, cols_A = len(A), len(A[0])
         rows_B, cols_B = len(B), len(B[0])
 
@@ -74,7 +85,9 @@ class SimpleLinearRegression:
 
         return result
 
-    def _matrix_vector_multiply(self, matrix: List[List[float]], vector: List[float]) -> List[float]:
+    def _matrix_vector_multiply(
+        self, matrix: List[List[float]], vector: List[float]
+    ) -> List[float]:
         result = []
         for row in matrix:
             dot_product = sum(row[i] * vector[i] for i in range(len(vector)))
@@ -112,7 +125,9 @@ class SimpleLinearRegression:
         return inverse
 
 
-def load_processed_data(filepath: Path) -> Tuple[List[List[float]], List[float], List[str]]:
+def load_processed_data(
+    filepath: Path,
+) -> Tuple[List[List[float]], List[float], List[str]]:
     """Load processed data from CSV."""
     print(f"Loading data from {filepath}...")
 
@@ -212,7 +227,9 @@ def train_test_split(
     return X_train, X_test, y_train, y_test
 
 
-def save_model_info(model: SimpleLinearRegression, metrics: Dict[str, Dict], filepath: Path) -> None:
+def save_model_info(
+    model: SimpleLinearRegression, metrics: Dict[str, Dict], filepath: Path
+) -> None:
     """Save model information as JSON."""
     model_info = {
         "model_type": "SimpleLinearRegression",
@@ -237,7 +254,7 @@ def main() -> None:
     data_path = Path("data/processed/processed_taxi_data.csv")
     if not data_path.exists():
         print(f"Processed data not found at {data_path}")
-        print("Please run: python scripts/simple_data_test.py first")
+        print("Please run: python tests/bash/simple_data_test.py first")
         return
 
     X, y, feature_names = load_processed_data(data_path)

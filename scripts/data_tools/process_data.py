@@ -25,7 +25,9 @@ def _load_files(files: Iterable[Path], fmt: str) -> pd.DataFrame:
             import duckdb
 
             with duckdb.connect() as conn:
-                frames.append(conn.execute("SELECT * FROM read_parquet(?)", [str(path)]).df())
+                frames.append(
+                    conn.execute("SELECT * FROM read_parquet(?)", [str(path)]).df()
+                )
         elif fmt == "csv":
             frames.append(pd.read_csv(path))
         else:
@@ -36,7 +38,7 @@ def _load_files(files: Iterable[Path], fmt: str) -> pd.DataFrame:
 
 
 def _clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    logger.debug("Cleaning data with {} rows", len(df))
+    log.debug("Cleaning data with {} rows", len(df))
     if "tpep_pickup_datetime" in df.columns and "tpep_dropoff_datetime" in df.columns:
         df["tpep_pickup_datetime"] = pd.to_datetime(df["tpep_pickup_datetime"])
         df["tpep_dropoff_datetime"] = pd.to_datetime(df["tpep_dropoff_datetime"])
@@ -49,24 +51,24 @@ def _clean_data(df: pd.DataFrame) -> pd.DataFrame:
     if "passenger_count" in df.columns:
         before = len(df)
         df = df[df["passenger_count"].between(1, 8)]
-        logger.debug("Filter passenger_count: {} -> {}", before, len(df))
+        log.debug("Filter passenger_count: {} -> {}", before, len(df))
     if "trip_distance" in df.columns:
         before = len(df)
         df = df[df["trip_distance"].between(0.01, 100)]
-        logger.debug("Filter trip_distance: {} -> {}", before, len(df))
+        log.debug("Filter trip_distance: {} -> {}", before, len(df))
     if "fare_amount" in df.columns:
         before = len(df)
         df = df[df["fare_amount"].between(0.01, 1000)]
-        logger.debug("Filter fare_amount: {} -> {}", before, len(df))
+        log.debug("Filter fare_amount: {} -> {}", before, len(df))
     if "trip_duration" in df.columns:
         before = len(df)
         df = df[df["trip_duration"].between(30, 10800)]
-        logger.debug("Filter trip_duration: {} -> {}", before, len(df))
+        log.debug("Filter trip_duration: {} -> {}", before, len(df))
     return df
 
 
 def _engineer_features(df: pd.DataFrame) -> pd.DataFrame:
-    logger.debug("Engineering features for {} rows", len(df))
+    log.debug("Engineering features for {} rows", len(df))
     df["pickup_hour"] = df["tpep_pickup_datetime"].dt.hour
     df["pickup_weekday"] = df["tpep_pickup_datetime"].dt.weekday
     df["pickup_is_weekend"] = (df["pickup_weekday"] >= 5).astype(int)
@@ -93,7 +95,9 @@ def _engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         df["is_airport_pickup"] = df["PULocationID"].isin(airport_locations).astype(int)
     if "DOLocationID" in df.columns:
         airport_locations = [132, 138, 161]
-        df["is_airport_dropoff"] = df["DOLocationID"].isin(airport_locations).astype(int)
+        df["is_airport_dropoff"] = (
+            df["DOLocationID"].isin(airport_locations).astype(int)
+        )
 
     rush_hours = [7, 8, 9, 17, 18, 19]
     df["is_rush_hour"] = df["pickup_hour"].isin(rush_hours).astype(int)
@@ -118,11 +122,13 @@ def _select_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     feature_columns = [col for col in feature_columns if col in df.columns]
     model_df = df[feature_columns + ["trip_duration"]].copy()
     model_df = model_df.dropna()
-    logger.debug("Selected {} features for {} rows", len(feature_columns), len(model_df))
+    log.debug("Selected {} features for {} rows", len(feature_columns), len(model_df))
     return model_df, feature_columns
 
 
-def _write_outputs(df: pd.DataFrame, features: list[str], output_dir: Path, fmt: str) -> None:
+def _write_outputs(
+    df: pd.DataFrame, features: list[str], output_dir: Path, fmt: str
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     data_path = output_dir / f"processed_data.{fmt}"
     if fmt == "parquet":
@@ -148,7 +154,7 @@ def _write_outputs(df: pd.DataFrame, features: list[str], output_dir: Path, fmt:
         )
         + "\n"
     )
-    logger.info("Wrote processed data to {}", output_dir)
+    log.info("Wrote processed data to {}", output_dir)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -187,7 +193,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     configure_logging()
     args = parse_args(argv)
-    logger.debug("Parsed args: {}", args)
+    log.debug("Parsed args: {}", args)
     parquet_files = list(args.input_dir.glob("*.parquet"))
     csv_files = list(args.input_dir.glob("*.csv"))
 
@@ -208,7 +214,7 @@ def main(argv: list[str] | None = None) -> int:
     df = _load_files(files, fmt)
     if args.sample_size and args.sample_size < len(df):
         df = df.sample(n=args.sample_size, random_state=42)
-        logger.debug("Sampled {} records", args.sample_size)
+        log.debug("Sampled {} records", args.sample_size)
 
     df = _clean_data(df)
     df = _engineer_features(df)

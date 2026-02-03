@@ -34,7 +34,8 @@ run_data() {
   fi
   if [[ -n "${DATA_MONTHS:-}" ]]; then
     # Space-separated months, e.g. DATA_MONTHS="1 2 3"
-    download_args+=("--months" ${DATA_MONTHS})
+    read -r -a data_months <<<"${DATA_MONTHS}"
+    download_args+=("--months" "${data_months[@]}")
     log_debug "DATA_MONTHS=${DATA_MONTHS}"
   fi
   if [[ -n "${DATA_OUTPUT_DIR:-}" ]]; then

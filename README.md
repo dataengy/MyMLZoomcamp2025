@@ -157,9 +157,19 @@ python scripts/data_tools/load_data.py \
 - [`src/training`](src/training) - training placeholder
 - [`scripts/`](scripts/) - utility scripts
 - [`tests/`](tests/) - test suite
-- [`notebooks/`](notebooks/) - Jupyter notebooks for R&D and experimentation
-- [`docs/`](docs/) - detailed project documentation
+- [`notebooks/`](notebooks/) - Jupyter notebooks for R&D and experimentation (see [notebooks/README.md](notebooks/README.md))
+- [`docs/`](docs/) - detailed project documentation (see [docs/README.md](docs/README.md))
 - [`.ai/`](.ai/) - AI agent artifacts and documentation (see [`.ai/AGENTS.md`](.ai/AGENTS.md))
+
+## Documentation
+
+Comprehensive documentation is available in [`docs/`](docs/):
+
+- [**API Reference**](docs/api.md) - FastAPI endpoints and usage
+- [**Development Guide**](docs/development.md) - Local setup, testing, and contributions
+- [**Data Pipeline**](docs/data_pipeline.md) - Data processing and validation
+- [**Model Development**](docs/model_development.md) - Training and evaluation
+- [**Notebooks Guide**](notebooks/README.md) - Jupyter notebooks for experimentation
 
 ## Make vs Just
 
