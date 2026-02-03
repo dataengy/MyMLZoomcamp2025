@@ -138,6 +138,7 @@ celerybeat.pid
 
 # Environments
 .env
+config/.env
 .venv
 env/
 venv/
@@ -181,6 +182,7 @@ Justfile
 /data/raw/
 /.ai/
 /.tmp_dagster_home_*
+/logs/
 /data/processed/data_summary.txt
 /data/processed/features.txt
 /data/processed/processed_data.csv

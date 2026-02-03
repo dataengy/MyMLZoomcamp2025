@@ -1,4 +1,7 @@
-.PHONY: setup lint format test train serve run-dags docker-build docker-up data data-download data-process data-test ml-test evaluate deploy-local full-pipeline
+.PHONY: setup lint format test train serve run-dags streamlit jupyter docker-build docker-up up data data-download data-process data-test ml-test evaluate deploy-local full-pipeline
+
+LOG_LEVEL ?= debug
+export LOG_LEVEL
 
 setup:
 	./scripts/setup.sh
@@ -33,11 +36,19 @@ run-dags:
 		PYTHONPATH=src uv run dagster dev -m dags --host 0.0.0.0 --port 3000; \
 	fi
 
+streamlit:
+	STREAMLIT_DATA_PATH=data/processed uv run streamlit run src/ui/streamlit_app.py --server.port 8501
+
+jupyter:
+	uv run jupyter lab --ip=0.0.0.0 --port 8888 --no-browser
+
 docker-build:
 	docker build -t mymlzoomcamp2025:latest .
 
 docker-up:
 	docker compose up --build
+
+up: docker-up
 
 # Pipeline steps
 data:

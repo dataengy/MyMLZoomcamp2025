@@ -26,6 +26,8 @@ Notes:
 - API tests require `fastapi` (installed via project deps).
 - Orchestration tests require `dagster` (installed via project deps).
 - Docker test is skipped unless `DOCKER_TESTS=1` and Docker is available.
+- Environment variables live in `config/.env` (copy from `config/.env.demo`).
+- Logging is configured via `config/config.yml` and `LOG_LEVEL` in `config/.env`.
 
 ## Local services
 
@@ -41,11 +43,29 @@ Run the Dagster UI + daemon:
 make run-dags
 ```
 
+Run Streamlit:
+
+```bash
+make streamlit
+```
+
+Run Jupyter Lab:
+
+```bash
+make jupyter
+```
+
+Notes:
+- Streamlit reads from `data/processed` by default; set `STREAMLIT_DATA_PATH` if needed.
+- Set `JUPYTER_TOKEN` in `config/.env` to secure Jupyter (empty token disables auth).
+
 Docker equivalents:
 
 ```bash
 docker compose up api
 docker compose up dagster
+docker compose up streamlit
+docker compose up jupyter
 ```
 
 Or use the helper:
@@ -95,6 +115,7 @@ python scripts/load_data.py \
 
 - `src/api` - FastAPI app
 - `src/dags` - Dagster asset definitions
+- `src/ui` - Streamlit app
 - `src/training` - training placeholder
 - `scripts` - utility scripts
 - `tests` - test suite
@@ -108,3 +129,6 @@ Common targets:
 - `make data-test` / `just data-test`
 - `make ml-test` / `just ml-test`
 - `make run-dags` / `just run-dags`
+- `make streamlit` / `just streamlit`
+- `make jupyter` / `just jupyter`
+- `make up` / `just up`

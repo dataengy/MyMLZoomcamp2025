@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pandas as pd
 
+from config.logging import configure_logging, log
+
+configure_logging()
 
 def _infer_format(path: Path) -> str:
     suffix = path.suffix.lower()
@@ -42,6 +45,8 @@ def evaluate_mean_baseline(data_path: Path, model_path: Path) -> dict:
     mae = float((target_values - mean_value).abs().mean())
     rmse = float(((target_values - mean_value) ** 2).mean() ** 0.5)
 
+    log.info("Evaluation complete (rows={})", len(df))
+
     return {
         "mae": mae,
         "rmse": rmse,
@@ -72,11 +77,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    log.info("Starting evaluation")
     metrics = evaluate_mean_baseline(args.data, args.model)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(metrics, indent=2))
+    log.info("Saved evaluation metrics to {}", args.output)
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(log.catch(main)())

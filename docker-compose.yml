@@ -7,7 +7,9 @@ services:
       - config/.env
     ports:
       - "${PORT:-8000}:8000"
-    command: ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app/src"]
+    volumes:
+      - ./data:/app/data
+    command: [ "uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app/src" ]
   dagster:
     build:
       context: .
@@ -18,4 +20,52 @@ services:
       - DAGSTER_HOME=/app/.dagster
     ports:
       - "${DAGSTER_PORT:-3000}:3000"
-    command: ["uv", "run", "dg", "dev", "-m", "dags", "--host", "0.0.0.0", "--port", "3000"]
+    volumes:
+      - ./data:/app/data
+    command: [ "uv", "run", "dg", "dev", "-m", "dags", "--host", "0.0.0.0", "--port", "3000" ]
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - config/.env
+    environment:
+      - STREAMLIT_DATA_PATH=/app/data/processed
+    ports:
+      - "${STREAMLIT_PORT:-8501}:8501"
+    volumes:
+      - ./data:/app/data
+    command:
+      [
+        "uv",
+        "run",
+        "streamlit",
+        "run",
+        "src/ui/streamlit_app.py",
+        "--server.port=8501",
+        "--server.address=0.0.0.0"
+      ]
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - config/.env
+    environment:
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-}
+    ports:
+      - "${JUPYTER_PORT:-8888}:8888"
+    volumes:
+      - ./data:/app/data
+      - ./notebooks:/app/notebooks
+    command:
+      [
+        "uv",
+        "run",
+        "jupyter",
+        "lab",
+        "--ip=0.0.0.0",
+        "--port=8888",
+        "--no-browser",
+        "--ServerApp.token=${JUPYTER_TOKEN:-}"
+      ]

@@ -2,9 +2,19 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
+
+from loguru import logger
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_PATH = PROJECT_ROOT / "src"
+if str(SRC_PATH) not in sys.path:
+    sys.path.insert(0, str(SRC_PATH))
+
+from config.logging import configure_logging  # noqa: E402
 
 NYC_TAXI_BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +31,7 @@ def get_data_url(data_type: str, year: int, month: int, base_url: str = NYC_TAXI
 
 
 def download_file(url: str, filepath: Path) -> bool:
+    logger.debug("Downloading {} -> {}", url, filepath)
     filepath.parent.mkdir(parents=True, exist_ok=True)
     request = Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urlopen(request, timeout=300) as response, filepath.open("wb") as handle:
@@ -50,11 +61,20 @@ def download_files(
     output_dir.mkdir(parents=True, exist_ok=True)
     downloaded: list[Path] = []
     skipped: list[Path] = []
+    logger.debug(
+        "Download config data_type={} year={} months={} output_dir={} force={}",
+        data_type,
+        year,
+        months,
+        output_dir,
+        force,
+    )
     for month in months:
         url = get_data_url(data_type, year, month, base_url=base_url)
         filename = Path(url).name
         filepath = output_dir / filename
         if filepath.exists() and not force:
+            logger.debug("Skipping existing file: {}", filepath)
             skipped.append(filepath)
             continue
         downloader(url, filepath)
@@ -103,7 +123,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_logging()
     args = parse_args(argv)
+    logger.debug("Parsed args: {}", args)
     months = resolve_months(args.months, args.sample)
     downloaded, skipped = download_files(
         data_type=args.data_type,
@@ -113,12 +135,12 @@ def main(argv: list[str] | None = None) -> int:
         force=args.force,
     )
     if not downloaded and not skipped:
-        print("No files downloaded.")
+        logger.warning("No files downloaded.")
         return 1
     if downloaded:
-        print(f"Downloaded {len(downloaded)} new files to {args.output_dir}")
+        logger.info("Downloaded {} new files to {}", len(downloaded), args.output_dir)
     if skipped:
-        print(f"Skipped {len(skipped)} existing files in {args.output_dir}")
+        logger.info("Skipped {} existing files in {}", len(skipped), args.output_dir)
     return 0
 
 

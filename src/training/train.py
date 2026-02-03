@@ -5,9 +5,8 @@ import json
 from pathlib import Path
 
 import pandas as pd
-from loguru import logger
 
-from config.logging import configure_logging
+from config.logging import configure_logging, log
 
 configure_logging()
 
@@ -35,7 +34,7 @@ def train_mean_baseline(data_path: Path, target: str = "trip_duration") -> dict:
         raise FileNotFoundError(f"Data file not found: {data_path}")
 
     df = _load_data(data_path)
-    logger.info("Loaded training data (rows={})", len(df))
+    log.info("Loaded training data (rows={})", len(df))
     if target not in df.columns:
         raise ValueError(f"Missing target column: {target}")
 
@@ -74,7 +73,8 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
-    logger.info("Starting training run")
+    log.info("Starting training run")
+    log.debug("Args: {}", args)
     result = train_mean_baseline(args.data)
 
     args.model_out.parent.mkdir(parents=True, exist_ok=True)
@@ -82,8 +82,10 @@ def main(argv: list[str] | None = None) -> int:
 
     args.model_out.write_text(json.dumps(result["model"], indent=2))
     args.metrics_out.write_text(json.dumps(result["metrics"], indent=2))
+    log.info("Saved model to {}", args.model_out)
+    log.info("Saved metrics to {}", args.metrics_out)
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(log.catch(main)())

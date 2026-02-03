@@ -7,18 +7,19 @@ from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
-from loguru import logger
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_PATH = PROJECT_ROOT / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
-from config.logging import configure_logging  # noqa: E402
+from config.logging import configure_logging, log  # noqa: E402
 
 
 def _load_files(files: Iterable[Path], fmt: str) -> pd.DataFrame:
     frames: list[pd.DataFrame] = []
+    files = list(files)
+    log.debug("Loading {} files with format={}", len(files), fmt)
     for path in files:
         if fmt == "parquet":
             import duckdb
@@ -35,6 +36,7 @@ def _load_files(files: Iterable[Path], fmt: str) -> pd.DataFrame:
 
 
 def _clean_data(df: pd.DataFrame) -> pd.DataFrame:
+    logger.debug("Cleaning data with {} rows", len(df))
     if "tpep_pickup_datetime" in df.columns and "tpep_dropoff_datetime" in df.columns:
         df["tpep_pickup_datetime"] = pd.to_datetime(df["tpep_pickup_datetime"])
         df["tpep_dropoff_datetime"] = pd.to_datetime(df["tpep_dropoff_datetime"])
@@ -45,17 +47,26 @@ def _clean_data(df: pd.DataFrame) -> pd.DataFrame:
         raise ValueError("Missing pickup/dropoff datetime columns.")
 
     if "passenger_count" in df.columns:
+        before = len(df)
         df = df[df["passenger_count"].between(1, 8)]
+        logger.debug("Filter passenger_count: {} -> {}", before, len(df))
     if "trip_distance" in df.columns:
+        before = len(df)
         df = df[df["trip_distance"].between(0.01, 100)]
+        logger.debug("Filter trip_distance: {} -> {}", before, len(df))
     if "fare_amount" in df.columns:
+        before = len(df)
         df = df[df["fare_amount"].between(0.01, 1000)]
+        logger.debug("Filter fare_amount: {} -> {}", before, len(df))
     if "trip_duration" in df.columns:
+        before = len(df)
         df = df[df["trip_duration"].between(30, 10800)]
+        logger.debug("Filter trip_duration: {} -> {}", before, len(df))
     return df
 
 
 def _engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+    logger.debug("Engineering features for {} rows", len(df))
     df["pickup_hour"] = df["tpep_pickup_datetime"].dt.hour
     df["pickup_weekday"] = df["tpep_pickup_datetime"].dt.weekday
     df["pickup_is_weekend"] = (df["pickup_weekday"] >= 5).astype(int)
@@ -107,6 +118,7 @@ def _select_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     feature_columns = [col for col in feature_columns if col in df.columns]
     model_df = df[feature_columns + ["trip_duration"]].copy()
     model_df = model_df.dropna()
+    logger.debug("Selected {} features for {} rows", len(feature_columns), len(model_df))
     return model_df, feature_columns
 
 
@@ -136,6 +148,7 @@ def _write_outputs(df: pd.DataFrame, features: list[str], output_dir: Path, fmt:
         )
         + "\n"
     )
+    logger.info("Wrote processed data to {}", output_dir)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -174,6 +187,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     configure_logging()
     args = parse_args(argv)
+    logger.debug("Parsed args: {}", args)
     parquet_files = list(args.input_dir.glob("*.parquet"))
     csv_files = list(args.input_dir.glob("*.csv"))
 
@@ -188,20 +202,21 @@ def main(argv: list[str] | None = None) -> int:
         files = csv_files
 
     if not files:
-        logger.warning("No input files found in {}", args.input_dir)
+        log.warning("No input files found in {}", args.input_dir)
         return 1
 
     df = _load_files(files, fmt)
     if args.sample_size and args.sample_size < len(df):
         df = df.sample(n=args.sample_size, random_state=42)
+        logger.debug("Sampled {} records", args.sample_size)
 
     df = _clean_data(df)
     df = _engineer_features(df)
     model_df, features = _select_features(df)
     _write_outputs(model_df, features, args.output_dir, args.output_format)
-    logger.info("Processed data saved to {}", args.output_dir)
+    log.info("Processed data saved to {}", args.output_dir)
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(log.catch(main)())

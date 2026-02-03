@@ -8,8 +8,6 @@ from typing import Iterable, TYPE_CHECKING
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from loguru import logger
-
 if TYPE_CHECKING:
     import pandas as pd
 
@@ -18,7 +16,7 @@ SRC_PATH = PROJECT_ROOT / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
-from config.logging import configure_logging  # noqa: E402
+from config.logging import configure_logging, log  # noqa: E402
 DEFAULT_CACHE_DIR = PROJECT_ROOT / "data" / "raw"
 
 
@@ -70,9 +68,9 @@ def _resolve_source(source: str, cache_dir: Path, force_download: bool) -> Path:
             raise ValueError("URL must point to a file path")
         dest = cache_dir / filename
         if dest.exists() and not force_download:
-            print(f"Using cached file: {dest}")
+            log.debug("Using cached file: {}", dest)
             return dest
-        print(f"Downloading: {source}")
+        log.info("Downloading: {}", source)
         return _download(source, dest)
     return Path(source)
 
@@ -193,35 +191,35 @@ def main() -> None:
     args = parser.parse_args()
 
     cache_dir = Path(args.cache_dir)
-    logger.info("Source: {}", args.source)
-    logger.info("Cache dir: {}", cache_dir)
+    log.info("Source: {}", args.source)
+    log.debug("Cache dir: {}", cache_dir)
     source_path = _resolve_source(args.source, cache_dir, args.force_download)
     if not source_path.exists():
         raise FileNotFoundError(f"Source not found: {source_path}")
 
     fmt = args.format or _infer_format(source_path)
     columns = _normalize_columns(args.columns)
-    logger.info("Format: {}", fmt)
+    log.info("Format: {}", fmt)
     if args.output:
-        logger.info("Output: {}", args.output)
+        log.info("Output: {}", args.output)
     if columns:
-        logger.info("Column filter: {}", _format_columns(columns))
+        log.info("Column filter: {}", _format_columns(columns))
 
     df = _read_dataframe(source_path, fmt, columns, args.nrows)
 
-    print(f"Loaded {len(df)} rows x {len(df.columns)} columns from {source_path}")
-    print(f"Columns ({len(df.columns)}): {_format_columns(list(df.columns))}")
+    log.info("Loaded {} rows x {} columns from {}", len(df), len(df.columns), source_path)
+    log.debug("Columns ({}): {}", len(df.columns), _format_columns(list(df.columns)))
 
     if args.show_head:
-        print(df.head().to_string(index=False))
+        log.debug("Head:\n{}", df.head().to_string(index=False))
 
     if args.output:
         output_path = Path(args.output)
         out_fmt = args.output_format or _infer_format(output_path)
         _write_dataframe(df, output_path, out_fmt)
         size_mb = _file_size_mb(output_path)
-        print(f"Saved data to {output_path} ({size_mb:.1f} MB)")
+        log.info("Saved data to {} ({:.1f} MB)", output_path, size_mb)
 
 
 if __name__ == "__main__":
-    main()
+    log.catch(main)()
