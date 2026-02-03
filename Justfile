@@ -79,6 +79,10 @@ lint:
     pre-commit run --all-files shellcheck
     pre-commit run --all-files checkmake
 
+# Run all pre-commit checks
+pre-commit:
+    pre-commit run --all-files
+
 # ============================================================================
 # Data Pipeline Recipes
 # ============================================================================
@@ -159,6 +163,31 @@ test:
 test-fast:
     uv run pytest -q
 
+# Full test run (unit + notebooks + QA + CI parity checks)
+test-all: test test-notebooks test-notebooks-sanitized qa-all-project github-ci-test gitlab-ci-test
+    @echo "✓ Test (all) completed successfully!"
+
+# Full test run in parallel (best-effort speedup).
+test-all-parallel:
+    @{{_trace}} \
+    set +e; \
+    (just test) & t1=$$!; \
+    (just test-notebooks) & t2=$$!; \
+    (just test-notebooks-sanitized) & t3=$$!; \
+    (just qa-all-project) & t4=$$!; \
+    (just github-ci-test) & t5=$$!; \
+    (just gitlab-ci-test) & t6=$$!; \
+    wait $$t1; s1=$$?; \
+    wait $$t2; s2=$$?; \
+    wait $$t3; s3=$$?; \
+    wait $$t4; s4=$$?; \
+    wait $$t5; s5=$$?; \
+    wait $$t6; s6=$$?; \
+    if [ $$s1 -ne 0 ] || [ $$s2 -ne 0 ] || [ $$s3 -ne 0 ] || [ $$s4 -ne 0 ] || [ $$s5 -ne 0 ] || [ $$s6 -ne 0 ]; then \
+        exit 1; \
+    fi; \
+    echo "✓ Test (all, parallel) completed successfully!"
+
 # ============================================================================
 # Doctor / Maintenance
 # ============================================================================
@@ -222,6 +251,10 @@ test-notebooks-sanitized:
 strip-notebooks:
     {{NOTEBOOKS_SCRIPTS}}/strip_notebooks.sh
 
+# Full notebook QA (lint + format + tests + sanitized + strip)
+notebooks-qa: lint-notebooks format-notebooks test-notebooks test-notebooks-sanitized strip-notebooks
+    @echo "✓ Notebook QA completed successfully!"
+
 # Run all notebook checks (lint + sanitized check)
 notebooks-check: lint-notebooks test-notebooks-sanitized
     @echo "✓ All notebook checks passed!"
@@ -249,12 +282,41 @@ nb-strip: strip-notebooks
 # QA Aggregation
 # ============================================================================
 
+# Data/ML QA (sanity tests)
+data-ml-qa: data-test ml-test
+    @echo "✓ Data/ML QA completed successfully!"
+
 # Run all QA checks (lint + tests + notebook QA + data/ML sanity tests).
 # This is the canonical QA entry point used by Makefile's `qa-all`.
-qa-all-project: lint-notebooks format-notebooks test-notebooks test-notebooks-sanitized strip-notebooks data-test ml-test test-fast
+qa-all-project: notebooks-qa data-ml-qa test-fast
     just lint
     just test
     @echo "✓ QA (all) completed successfully!"
+
+# ============================================================================
+# CI Parity Helpers
+# ============================================================================
+
+# Run the GitHub Actions CI checks locally (best-effort parity).
+github-ci-test:
+    uv run ruff check .
+    {{NOTEBOOKS_SCRIPTS}}/lint_notebooks.sh
+    uv run --with yamllint yamllint .
+    uv run pytest -v
+    {{NOTEBOOKS_SCRIPTS}}/check_sanitized.sh
+    {{NOTEBOOKS_SCRIPTS}}/test_notebooks.sh || true
+
+# Run the GitLab CI checks locally (best-effort parity).
+gitlab-ci-test:
+    uv run ruff check .
+    uv run ruff format --check .
+    pre-commit run --all-files shellcheck
+    pre-commit run --all-files shfmt
+    uv run --with yamllint yamllint .
+    {{NOTEBOOKS_SCRIPTS}}/lint_notebooks.sh
+    uv run pytest -v --cov=src --cov-report=term --cov-report=xml
+    {{NOTEBOOKS_SCRIPTS}}/check_sanitized.sh
+    {{NOTEBOOKS_SCRIPTS}}/test_notebooks.sh || true
 
 # ============================================================================
 # Code Formatting

@@ -12,7 +12,7 @@
 # - When adding new targets, prefer delegating to `just` unless the target is trivial.
 # - Keep shell snippets minimal and non-interactive to avoid surprising CI behavior.
 
-.PHONY: _ all clean setup env-check doctor lint format test train serve docker-up qa-all \
+.PHONY: _ all clean setup env-check doctor lint format test test-all train serve docker-up qa-all \
 	dagster run-dags streamlit jupyter
 
 # ============================================================================
@@ -72,6 +72,10 @@ format: _
 # Run unit tests with the default test runner.
 test: _
 	just test
+
+# Run the full test suite (unit + notebooks).
+test-all: _
+	just test-all
 
 # Train the default model pipeline.
 train: _

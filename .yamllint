@@ -1,0 +1,12 @@
+---
+extends: config/linters/yamllint.yaml
+
+ignore: |
+  .ai/.codex/**
+  .claude/skills/**
+  .run/**
+  .venv/**
+  .pre-commit-config.yaml
+  config/config.yml
+  config/linters/yamllint.yaml
+  deploy/docker-compose.yml

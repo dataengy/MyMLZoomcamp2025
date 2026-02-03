@@ -9,6 +9,6 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$PROJECT_ROOT"
 
 echo "==> Linting notebooks with nbqa ruff..."
-uv run nbqa ruff notebooks/ check "$@"
+uv run nbqa ruff check notebooks/ "$@"
 
 echo "✓ Notebook linting complete!"
