@@ -1,0 +1,5 @@
+# Dagster instance configuration template.
+# Copy to $DAGSTER_HOME/dagster.yaml to customize instance behavior.
+
+telemetry:
+  enabled: false

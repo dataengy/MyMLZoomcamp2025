@@ -1,0 +1,24 @@
+set dotenv-load := true
+
+# Setup utility tasks live here.
+# Usage: just -f scripts/setup/Justfile <task>
+
+# Verify Docker engine/compose access.
+@docker-check:
+  ./scripts/setup/docker-check.sh
+
+# Check config/.env matches config/.env.demo.
+@env-check:
+  python {{justfile_directory()}}/env-check.py
+
+# Render env files listed in env-render.env.
+@env-render:
+  python {{justfile_directory()}}/env-render.py
+
+# Shell wrapper around env-render.py.
+@env-render-sh:
+  ./scripts/setup/env-render.sh
+
+# Install tools and sync dependencies.
+@setup:
+  ./scripts/setup/setup.sh

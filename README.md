@@ -16,13 +16,13 @@ sample if downloads are disabled.
 1) Install tooling + deps (direnv optional, just optional, uv, Python) and sync the lockfile:
 
 ```bash
-./scripts/setup.sh
+./scripts/setup/setup.sh
 ```
 
 If you want setup to call `direnv allow`, run:
 
 ```bash
-ALLOW_DIRENV=1 ./scripts/setup.sh
+ALLOW_DIRENV=1 ./scripts/setup/setup.sh
 ```
 
 2) Run tests:
@@ -36,9 +36,11 @@ Notes:
 - Orchestration tests require `dagster` (installed via project deps).
 - Docker test is skipped unless `DOCKER_TESTS=1` and Docker is available.
 - Environment variables live in [`config/.env`](config/.env) (sync from [`config/.env.demo`](config/.env.demo)).
-- Use `scripts/env-render.py --interactive` to update `config/.env`, and `scripts/env-check.py` to verify sync.
+- Use `scripts/setup/env-render.py --interactive` to update `config/.env`, and `scripts/setup/env-check.py` to verify sync.
 - Logging is configured via [`config/config.yml`](config/config.yml) and `LOG_LEVEL` in [`config/.env`](config/.env).
 - Set `LOG_FORMAT=short` for compact emoji logs (`yy/mm/dd hh:mm:ss` + emoji + place + message).
+- Setup utilities are documented in [`scripts/setup/README.md`](scripts/setup/README.md) (see also `scripts/setup/Justfile`).
+- Dagster asset details live in [`src/dags/README.md`](src/dags/README.md).
 
 ## Jupyter Notebooks
 
@@ -109,6 +111,8 @@ make jupyter
 Notes:
 - Streamlit reads from [`data/processed`](data/processed) by default; set `STREAMLIT_DATA_PATH` if needed.
 - Set `JUPYTER_TOKEN` in [`config/.env`](config/.env) to secure Jupyter (empty token disables auth).
+- Dagster UI is started via `make dagster`, which calls `scripts/dagster/start_dagster.sh`.
+- You can override defaults: `scripts/dagster/start_dagster.sh --host 127.0.0.1 --port 3000 --module dags`.
 
 Docker equivalents:
 
@@ -172,6 +176,9 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+Virtual environment:
+- The project uses a single virtual environment at `./.run/.venv` (no root `.venv`).
+
 ## Data scripts
 
 Use the scripts below for data setup and sanity checks:
@@ -218,6 +225,8 @@ python scripts/data_tools/load_data.py \
 - [`src/ui`](src/ui) - Streamlit app
 - [`src/training`](src/training) - training placeholder
 - [`scripts/`](scripts/) - utility scripts
+- [`scripts/claude`](scripts/claude) - Claude Code helpers (context, skill install, Justfile)
+- [`scripts/codex`](scripts/codex) - Codex CLI helpers (skill install, Justfile)
 - [`tests/`](tests/) - test suite
 - [`notebooks/`](notebooks/) - Jupyter notebooks for R&D and experimentation (see [notebooks/README.md](notebooks/README.md))
 - [`docs/`](docs/) - detailed project documentation (see [docs/README.md](docs/README.md))
@@ -264,3 +273,11 @@ Common targets:
 - `just evaluate`
 - `just full-pipeline`
 - `just test-fast`
+
+### Agent Justfiles (Claude + Codex)
+
+- `just -f scripts/claude/Justfile context`
+- `just -f scripts/claude/Justfile install-skills`
+- `just -f scripts/codex/Justfile install-skills`
+
+See [`scripts/claude/README.md`](scripts/claude/README.md) and [`scripts/codex/README.md`](scripts/codex/README.md) for details.

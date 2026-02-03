@@ -5,6 +5,12 @@ import argparse
 import sys
 from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _resolve_path(path: Path) -> Path:
+    return path if path.is_absolute() else PROJECT_ROOT / path
+
 
 def _parse_env(path: Path) -> tuple[list[str], dict[str, str]]:
     text = path.read_text(encoding="utf-8")
@@ -42,8 +48,8 @@ def main() -> int:
     parser.add_argument("--env-file", default="config/.env")
     args = parser.parse_args()
 
-    demo_path = Path(args.demo_file)
-    env_path = Path(args.env_file)
+    demo_path = _resolve_path(Path(args.demo_file))
+    env_path = _resolve_path(Path(args.env_file))
 
     if not demo_path.exists():
         print(f"Missing demo file: {demo_path}", file=sys.stderr)
@@ -71,7 +77,7 @@ def main() -> int:
         print(f"Extra keys: {', '.join(extra)}", file=sys.stderr)
     if not order_matches and not missing and not extra:
         print("Key order differs from config/.env.demo", file=sys.stderr)
-    print("Run scripts/env-render.py --interactive to sync.", file=sys.stderr)
+    print("Run scripts/setup/env-render.py --interactive to sync.", file=sys.stderr)
     return 1
 
 

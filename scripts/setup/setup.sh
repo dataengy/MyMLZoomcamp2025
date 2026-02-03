@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PYTHON_VERSION="${PYTHON_VERSION:-3.13}"
 UV_SYNC_FLAGS="${UV_SYNC_FLAGS:---frozen}"
 ALLOW_DIRENV="${ALLOW_DIRENV:-0}"
@@ -14,7 +14,7 @@ DRY_RUN=0
 
 usage() {
   cat <<'USAGE'
-Usage: ./scripts/setup.sh [--dry-run]
+Usage: ./scripts/setup/setup.sh [--dry-run]
 
 Options:
   --dry-run   Print the actions without installing tools or syncing dependencies.
@@ -110,7 +110,7 @@ main() {
         warn "direnv not found; skipping direnv allow."
       fi
     else
-      warn "Skipping direnv allow. Run 'ALLOW_DIRENV=1 ./scripts/setup.sh' or 'direnv allow' manually."
+      warn "Skipping direnv allow. Run 'ALLOW_DIRENV=1 ./scripts/setup/setup.sh' or 'direnv allow' manually."
     fi
   fi
 

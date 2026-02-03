@@ -1,6 +1,7 @@
 # Justfile - Complex recipes with arguments
 # For simple common operations, see Makefile
 # Complex logic lives in scripts/ directory
+# Setup helpers live in scripts/setup/Justfile (run with: just -f scripts/setup/Justfile <task>)
 
 # ============================================================================
 # Configuration
@@ -111,7 +112,7 @@ deploy-local:
 
 # Verify config/.env matches config/.env.demo
 env-check:
-    uv run python scripts/env-check.py
+    uv run python scripts/setup/env-check.py
 
 # Fast test run (quiet mode)
 test-fast:

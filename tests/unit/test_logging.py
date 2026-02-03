@@ -30,8 +30,10 @@ def _reset_logging() -> None:
     log_config.log.remove()
 
 
-def test_short_format_from_config(tmp_path, capsys):
+def test_short_format_from_config(tmp_path, capsys, monkeypatch):
     config = _write_config(tmp_path, "short")
+    monkeypatch.delenv("LOG_FORMAT", raising=False)
+    monkeypatch.delenv("LOG_LEVEL", raising=False)
     os.environ["LOG_ENQUEUE"] = "0"
     _reset_logging()
     log_config.configure_logging(config)

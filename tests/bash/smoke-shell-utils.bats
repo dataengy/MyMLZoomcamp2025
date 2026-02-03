@@ -12,6 +12,8 @@
 LOG4BASH="$PROJECT_ROOT/scripts/utils/log4bash.sh"
 LOG4SH="$PROJECT_ROOT/scripts/utils/log4sh.sh"
 UTILS="$PROJECT_ROOT/scripts/utils/utils.sh"
+export LC_ALL=C
+export LANG=C
 
 # ---------------------------------------------------------------------------- #
 # log4bash.sh — logging primitives

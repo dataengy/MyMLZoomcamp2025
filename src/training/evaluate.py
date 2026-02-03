@@ -33,9 +33,10 @@ def _load_data(path: Path) -> pd.DataFrame:
 
 
 def _compute_metrics(y_true, y_pred) -> dict:
+    rmse = float(mean_squared_error(y_true, y_pred) ** 0.5)
     return {
         "mae": float(mean_absolute_error(y_true, y_pred)),
-        "rmse": float(mean_squared_error(y_true, y_pred, squared=False)),
+        "rmse": rmse,
         "r2": float(r2_score(y_true, y_pred)),
         "samples": int(len(y_true)),
     }

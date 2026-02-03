@@ -1,0 +1,32 @@
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+
+PROJECT_ROOT := justfile_directory() / ".."
+PYTEST := "python -m pytest"
+BATS := "bats"
+
+help:
+    @echo "Tests Justfile"
+    @echo "  just test        # all pytest suites"
+    @echo "  just unit        # pytest unit suite"
+    @echo "  just integration # pytest integration suite"
+    @echo "  just docker      # pytest docker suite"
+    @echo "  just bats        # bats smoke tests"
+
+# Pytest suites
+
+test:
+    cd {{PROJECT_ROOT}} && {{PYTEST}} tests
+
+unit:
+    cd {{PROJECT_ROOT}} && {{PYTEST}} tests/unit
+
+integration:
+    cd {{PROJECT_ROOT}} && {{PYTEST}} tests/integration
+
+docker:
+    cd {{PROJECT_ROOT}} && {{PYTEST}} tests/docker
+
+# Bats smoke tests
+
+bats:
+    cd {{PROJECT_ROOT}} && {{BATS}} tests/bash

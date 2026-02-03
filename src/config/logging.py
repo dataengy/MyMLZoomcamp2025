@@ -60,7 +60,12 @@ def configure_logging(config_path: Path | None = None) -> None:
     colorize = bool(log_cfg.get("colorize", True))
     backtrace = bool(log_cfg.get("backtrace", True))
     diagnose = bool(log_cfg.get("diagnose", False))
-    enqueue = _parse_bool(os.environ.get("LOG_ENQUEUE", log_cfg.get("enqueue", True)), True)
+    running_tests = os.getenv("PYTEST_CURRENT_TEST") is not None
+    default_enqueue = False if running_tests else True
+    enqueue = _parse_bool(
+        os.environ.get("LOG_ENQUEUE", log_cfg.get("enqueue", default_enqueue)),
+        default_enqueue,
+    )
 
     log.remove()
     log.add(

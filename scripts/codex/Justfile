@@ -1,0 +1,15 @@
+# Codex utility tasks live here.
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+help:
+    @echo "Codex utilities (Justfile)"
+    @echo "  just -f scripts/codex/Justfile install-skills [args...]"
+    @echo "  just -f scripts/codex/Justfile install-skills-force"
+
+# Pass through any args to install_local_skills.sh.
+install-skills *args:
+    scripts/codex/install_local_skills.sh {{args}}
+
+install-skills-force:
+    scripts/codex/install_local_skills.sh --force

@@ -1,17 +1,12 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
+from config.env import load_env, require_env
 
-def _require_env(name: str) -> str:
-    value = os.getenv(name)
-    if value is None or value == "":
-        raise RuntimeError(f"Missing required env var: {name}. Set it in config/.env.")
-    return value
+load_env()
 
-
-RUN_DIR = Path(_require_env("RUN_DIR"))
-REPORTS_DIR = Path(_require_env("REPORTS_DIR"))
-LOGS_DIR = Path(_require_env("LOG_DIR"))
-DAGSTER_HOME = Path(_require_env("DAGSTER_HOME"))
+RUN_DIR = Path(require_env("RUN_DIR"))
+REPORTS_DIR = Path(require_env("REPORTS_DIR"))
+LOGS_DIR = Path(require_env("LOG_DIR"))
+DAGSTER_HOME = Path(require_env("DAGSTER_HOME"))

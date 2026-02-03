@@ -22,6 +22,6 @@ def _run(cmd: list[str]) -> None:
 
 
 def test_env_sync_scripts() -> None:
-    _run([sys.executable, "scripts/env-check.py"])
-    _run([sys.executable, "scripts/env-render.py", "--check"])
-    _run(["bash", "scripts/env-render.sh", "--check"])
+    _run([sys.executable, "scripts/setup/env-check.py"])
+    _run([sys.executable, "scripts/setup/env-render.py", "--check"])
+    _run(["bash", "scripts/setup/env-render.sh", "--check"])

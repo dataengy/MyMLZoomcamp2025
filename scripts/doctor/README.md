@@ -4,6 +4,48 @@ Diagnostic and repair scripts for common project issues.
 
 ## Scripts
 
+### run-tests-safe.py
+Runs the test suite with safe defaults to avoid long runtimes and flaky log output.
+
+**Features:**
+- Sets conservative env defaults (sample size, output format, logging)
+- Clears LOG_FORMAT/LOG_LEVEL to rely on config
+- Accepts any command (defaults to `make test`)
+
+**Usage:**
+```bash
+# Default: make test with safe env vars
+./scripts/doctor/run-tests-safe.py
+
+# Run a custom command with the same env safety
+./scripts/doctor/run-tests-safe.py uv run pytest -q
+```
+
+**When to use:**
+- Tests are timing out or running on large datasets
+- Log output is inconsistent in pytest
+
+### web-tool-check.sh
+Checks that a local web tool (e.g., Dagster UI) responds.
+
+**Features:**
+- Verifies the URL responds with HTTP 2xx/3xx
+- Detects the 0.0.0.0 bind address and suggests localhost
+- Retries with configurable timeout and sleep
+
+**Usage:**
+```bash
+# Default: check http://127.0.0.1:3000
+./scripts/doctor/web-tool-check.sh
+
+# Check a specific URL
+./scripts/doctor/web-tool-check.sh --url http://127.0.0.1:3000
+```
+
+**When to use:**
+- Dagster reports it is serving but the UI doesn't open
+- You see logs like "Serving dagster-webserver on http://0.0.0.0:3000"
+
 ### loc-01-git-sync-push.sh
 Handles git push failures due to diverged branches.
 
@@ -155,6 +197,10 @@ doctor-fix:
 # Sync with remote and push
 sync-push:
     ./scripts/doctor/loc-01-git-sync-push.sh --auto-stash --rebase
+
+# Run tests with safe env defaults
+test-safe:
+    ./scripts/doctor/run-tests-safe.py
 ```
 
 ## Contributing

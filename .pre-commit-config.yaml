@@ -3,6 +3,10 @@ repos:
     - repo: local
       hooks:
           # Python + Notebook linting and formatting (ruff handles .ipynb natively)
+          # Uses `uv run` to execute tools from the project lockfile/virtual env,
+          # ensuring consistent versions without relying on globally installed binaries.
+          # Tip: run locally with `pre-commit run ruff --all-files` or
+          # `uv run ruff check --fix <path>` for targeted fixes.
           - id: ruff
             name: ruff
             entry: uv run ruff check --fix
@@ -20,6 +24,8 @@ repos:
             types: [jupyter]
 
           # Shell formatting and linting
+          # `shfmt` rewrites files in-place (-w); use `shfmt -d` to preview diffs.
+          # `shellcheck` only reports issues; it does not rewrite files.
           - id: shfmt
             name: shfmt
             entry: shfmt -w -i 2 -ci
@@ -32,6 +38,8 @@ repos:
             files: \.sh$
 
 #          # Just formatting
+#          # Requires `just` v1.14+ with unstable fmt; runs formatting in check mode.
+#          # Use `just --unstable --fmt` to apply formatting manually.
 #          - id: just-fmt
 #            name: just --unstable --fmt --check
 #            entry: just --unstable --fmt --check
@@ -40,6 +48,8 @@ repos:
 #            pass_filenames: false
 
           # Run tests (optional - can be slow)
+          # `pass_filenames: false` runs the full suite; expect longer runtimes.
+          # Enable only if you want tests on every commit.
           # Uncomment to run tests on every commit
           # - id: pytest
           #   name: pytest
@@ -49,6 +59,8 @@ repos:
           #   stages: [commit]
 
           # - id: test-notebooks-sanitized
+          #   Runs the repo's notebook sanitizer script; keep disabled if notebooks
+          #   are large or frequently changing.
           #   name: check notebooks sanitized
           #   entry: ./scripts/notebooks/check_sanitized.sh
           #   language: system
@@ -62,7 +74,11 @@ repos:
 #          - id: check-yaml
           - id: end-of-file-fixer
           - id: trailing-whitespace
+          # These hooks run fast and are safe to keep enabled for all commits.
 
+    #readme: https://chatgpt.com/g/g-p-67ca07e56db48191aa5e98c20606814b-makefile-justfile/c/6981f278-65f8-8397-9c49-107d282469aa
+    #https://github.com/checkmake/checkmake?tab=readme-ov-file#checkmake:
+    # - checkmake is a linter for Makefiles. It scans Makefiles for potential issues based on configurable rules.
     - repo: https://github.com/mrtazz/checkmake
       rev: 0.2.2
       hooks:

@@ -1,18 +1,20 @@
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 from dagster import Definitions, asset, define_asset_job
 
+from config.env import load_env, require_env
 from config.paths import REPORTS_DIR
 from scripts.data_tools.download_data import download_files, resolve_months
 from scripts.data_tools.process_data import process_data
 from training.evaluate import evaluate_model
 from training.train import train_model
+
+load_env()
 
 
 @dataclass(frozen=True)
@@ -22,10 +24,8 @@ class TrainingArtifacts:
     evaluation_path: str
 
 
-def _env_bool(name: str, default: bool = False) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
+def _env_bool(name: str) -> bool:
+    value = require_env(name)
     return value.lower() in {"1", "true", "yes", "y"}
 
 
@@ -56,12 +56,12 @@ def _write_synthetic_raw(output_dir: Path) -> Path:
 
 @asset
 def raw_data() -> dict:
-    raw_dir = Path(os.getenv("RAW_DATA_DIR", "data/raw"))
-    data_type = os.getenv("DATA_TYPE", "yellow_tripdata")
-    year = int(os.getenv("DATA_YEAR", "2024"))
-    months = _parse_months(os.getenv("DATA_MONTHS", "1,2,3"))
-    allow_download = _env_bool("ALLOW_DOWNLOAD", default=False)
-    sample = _env_bool("DATA_SAMPLE", default=False)
+    raw_dir = Path(require_env("RAW_DATA_DIR"))
+    data_type = require_env("DATA_TYPE")
+    year = int(require_env("DATA_YEAR"))
+    months = _parse_months(require_env("DATA_MONTHS"))
+    allow_download = _env_bool("ALLOW_DOWNLOAD")
+    sample = _env_bool("DATA_SAMPLE")
 
     existing_files = list(raw_dir.glob("*.parquet")) + list(raw_dir.glob("*.csv"))
     if existing_files:
@@ -88,11 +88,11 @@ def raw_data() -> dict:
 @asset
 def prepared_data(raw_data: dict) -> dict:
     _ = raw_data
-    input_dir = Path(os.getenv("RAW_DATA_DIR", "data/raw"))
-    output_dir = Path(os.getenv("PROCESSED_DATA_DIR", "data/processed"))
-    sample_size = os.getenv("SAMPLE_SIZE")
-    sample_size_int = int(sample_size) if sample_size else None
-    output_format = os.getenv("OUTPUT_FORMAT", "csv")
+    input_dir = Path(require_env("RAW_DATA_DIR"))
+    output_dir = Path(require_env("PROCESSED_DATA_DIR"))
+    sample_size_raw = require_env("SAMPLE_SIZE")
+    sample_size_int = int(sample_size_raw) if sample_size_raw else None
+    output_format = require_env("OUTPUT_FORMAT")
 
     result = process_data(
         input_dir=input_dir,
@@ -107,7 +107,7 @@ def prepared_data(raw_data: dict) -> dict:
 @asset
 def trained_model(prepared_data: dict) -> TrainingArtifacts:
     data_path = Path(prepared_data["processed_path"])
-    model_path = Path(os.getenv("MODEL_PATH", "models/model.joblib"))
+    model_path = Path(require_env("MODEL_PATH"))
     metrics_path = REPORTS_DIR / "metrics.json"
     train_model(
         data_path=data_path,

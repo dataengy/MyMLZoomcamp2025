@@ -1,0 +1,21 @@
+# Run helper scripts for repo maintenance.
+
+set positional-arguments
+
+github-push *args:
+	bash "{{justfile_directory()}}/github_push_doctor.sh" {{args}}
+
+sync-push *args:
+	bash "{{justfile_directory()}}/loc-01-git-sync-push.sh" {{args}}
+
+health-check *args:
+	bash "{{justfile_directory()}}/loc-02-project-health-check.sh" {{args}}
+
+docker-check *args:
+	bash "{{justfile_directory()}}/loc-03-docker-check.sh" {{args}}
+
+test-safe *args:
+	python3 "{{justfile_directory()}}/run-tests-safe.py" {{args}}
+
+web-tool-check *args:
+	bash "{{justfile_directory()}}/web-tool-check.sh" {{args}}

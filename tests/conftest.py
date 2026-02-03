@@ -15,6 +15,22 @@ ROOT_PATH = Path(__file__).resolve().parents[1]
 if str(ROOT_PATH) not in sys.path:
     sys.path.insert(0, str(ROOT_PATH))
 
+TEST_ENV_DEFAULTS = {
+    "RAW_DATA_DIR": "data/raw_test",
+    "PROCESSED_DATA_DIR": "data/processed_test",
+    "DATA_TYPE": "yellow_tripdata",
+    "DATA_YEAR": "2024",
+    "DATA_MONTHS": "1,2,3",
+    "ALLOW_DOWNLOAD": "0",
+    "DATA_SAMPLE": "1",
+    "SAMPLE_SIZE": "500",
+    "OUTPUT_FORMAT": "csv",
+    "MODEL_PATH": "models/model.joblib",
+}
+
+for key, value in TEST_ENV_DEFAULTS.items():
+    os.environ.setdefault(key, value)
+
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     required = ["fastapi", "pandas", "dagster"]

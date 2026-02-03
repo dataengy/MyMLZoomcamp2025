@@ -11,6 +11,8 @@ Detailed documentation for the ML Zoomcamp project.
 - [**Orchestration**](orchestration.md) - Dagster assets and schedules
 - [**Deployment**](deployment.md) - Docker, environment setup, and production deployment
 - [**Development Guide**](development.md) - Local setup, testing, and contribution guidelines
+- [**Setup Scripts**](../scripts/setup/README.md) - Setup utilities and env sync helpers
+- [**Dagster Assets**](../src/dags/README.md) - Asset definitions and required env vars
 
 ## Quick Links
 
@@ -39,3 +41,4 @@ See the main [README](../README.md#structure) for an overview of the project str
 - [`.ai/TODO.md`](../.ai/TODO.md) - Project tasks and roadmap
 - [`Makefile`](../Makefile) - Common development commands
 - [`Justfile`](../Justfile) - Complex operations and pipelines
+- [`scripts/setup/Justfile`](../scripts/setup/Justfile) - Setup command shortcuts

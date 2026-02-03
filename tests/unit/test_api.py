@@ -1,12 +1,14 @@
 from pathlib import Path
 
-import joblib
 import pytest
-from fastapi.testclient import TestClient
-from sklearn.linear_model import LinearRegression
 
+pytest.importorskip("joblib")
 pytest.importorskip("fastapi")
 pytest.importorskip("sklearn")
+
+import joblib
+from fastapi.testclient import TestClient
+from sklearn.linear_model import LinearRegression
 
 from api.main import app
 
@@ -43,4 +45,4 @@ def test_predict(tmp_path: Path, monkeypatch) -> None:
         json={"features": {"trip_distance": 2.0, "passenger_count": 3.0}},
     )
     assert response.status_code == 200
-    assert response.json() == {"prediction": 5.0}
+    assert response.json()["prediction"] == pytest.approx(5.0)

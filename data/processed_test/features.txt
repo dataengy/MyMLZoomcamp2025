@@ -1,0 +1,11 @@
+trip_distance
+passenger_count
+pickup_hour
+pickup_weekday
+pickup_is_weekend
+is_rush_hour
+speed_mph
+PULocationID
+DOLocationID
+is_airport_pickup
+is_airport_dropoff

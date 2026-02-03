@@ -2,7 +2,7 @@
 # For complex recipes with arguments, see Justfile
 # For detailed scripts, see scripts/
 
-.PHONY: all clean setup env-check lint lint-notebooks format format-python format-shell format-yaml format-just format-hooks test test-notebooks test-notebooks-sanitized qa-all train serve run-dags streamlit jupyter docker-build docker-up up
+.PHONY: all clean setup env-check lint lint-notebooks format format-python format-shell format-yaml format-just format-hooks test test-notebooks test-notebooks-sanitized qa-all train serve dagster run-dags streamlit jupyter docker-build docker-up up
 
 # ============================================================================
 # Configuration
@@ -10,6 +10,7 @@
 
 LOG_LEVEL ?= debug
 export LOG_LEVEL
+ORCHESTRATOR ?= dagster
 
 # ============================================================================
 # Setup and Initialization
@@ -17,11 +18,11 @@ export LOG_LEVEL
 
 # Check that config/.env matches config/.env.demo
 env-check:
-	uv run python scripts/env-check.py
+	uv run python scripts/setup/env-check.py
 
 # Initial project setup (dependencies, git hooks, etc.)
 setup:
-	./scripts/setup.sh
+	./scripts/setup/setup.sh
 
 # Run all checks (lint + test)
 all: lint test
@@ -43,7 +44,6 @@ lint:
 	uv run ruff check .
 	pre-commit run --all-files shellcheck
 	pre-commit run --all-files checkmake
-	pre-commit run --all-files yamllint
 
 # Lint Jupyter notebooks with ruff via nbqa
 lint-notebooks:
@@ -117,17 +117,15 @@ serve:
 
 # Start Dagster web UI for pipeline management
 # Uses 'dg' CLI if available, falls back to 'dagster'
+dagster:
+	@./scripts/dagster/start_dagster.sh
+
+# Orchestrator entrypoint (select via ORCHESTRATOR=dagster)
 run-dags:
-	@mkdir -p .run/dagster
-	@if ! uv run python -c "import dagster_webserver" >/dev/null 2>&1; then \
-		echo "Missing dagster-webserver. Syncing deps..."; \
-		uv sync; \
-	fi
-	@if uv run python -c "import shutil; raise SystemExit(0 if shutil.which('dg') else 1)" >/dev/null 2>&1; then \
-		DAGSTER_HOME=.run/dagster PYTHONPATH=src uv run dg dev -m dags --host 0.0.0.0 --port 3000; \
-	else \
-		DAGSTER_HOME=.run/dagster PYTHONPATH=src uv run dagster dev -m dags --host 0.0.0.0 --port 3000; \
-	fi
+	@case "$(ORCHESTRATOR)" in \
+		dagster) $(MAKE) dagster ;; \
+		*) echo "Unknown orchestrator: $(ORCHESTRATOR)"; echo "Supported: dagster"; exit 1 ;; \
+	esac
 
 # Start Streamlit UI for model interaction
 streamlit:

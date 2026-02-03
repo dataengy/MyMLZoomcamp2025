@@ -17,24 +17,24 @@ Guide for local development, testing, and contributions.
 ```bash
 git clone <repository-url>
 cd MyMLZoomcamp2025
-./scripts/setup.sh
+./scripts/setup/setup.sh
 ```
 
 With direnv:
 ```bash
-ALLOW_DIRENV=1 ./scripts/setup.sh
+ALLOW_DIRENV=1 ./scripts/setup/setup.sh
 ```
 
 ### 2. Configuration
 
 Sync environment template:
 ```bash
-./scripts/env-render.py --interactive
+./scripts/setup/env-render.py --interactive
 ```
 
 Verify sync:
 ```bash
-./scripts/env-check.py
+./scripts/setup/env-check.py
 ```
 
 Edit [`config/.env`](../config/.env) with your settings:
@@ -247,7 +247,7 @@ docker system prune -f
 Reset virtual environment:
 ```bash
 rm -rf .run/.venv
-./scripts/setup.sh
+./scripts/setup/setup.sh
 ```
 
 ## Contributing
