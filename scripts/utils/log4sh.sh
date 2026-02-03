@@ -13,6 +13,24 @@ _log_level_num() {
   esac
 }
 
+_log_level_emoji() {
+  case "$1" in
+    DEBUG) echo "🐛" ;;
+    INFO) echo "ℹ️" ;;
+    WARN) echo "⚠️" ;;
+    ERROR) echo "❌" ;;
+    *) echo "•" ;;
+  esac
+}
+
+_log_place() {
+  if [ -n "${LOG_PLACE:-}" ]; then
+    echo "$LOG_PLACE"
+    return
+  fi
+  echo "${0##*/}"
+}
+
 _log_enabled() {
   [ "$(_log_level_num "$1")" -ge "$(_log_level_num "$LOG_LEVEL")" ]
 }
@@ -20,8 +38,10 @@ _log_enabled() {
 _log_emit() {
   level="$1"
   shift
-  ts=$(date "+%Y-%m-%d %H:%M:%S")
-  printf '%s | %-5s | %s\n' "$ts" "$level" "$*"
+  ts=$(date "+%y/%m/%d %H:%M:%S")
+  emoji=$(_log_level_emoji "$level")
+  place=$(_log_place)
+  printf '%s %s %s %s\n' "$ts" "$emoji" "$place" "$*"
 }
 
 log_debug() { _log_enabled DEBUG && _log_emit DEBUG "$*"; }

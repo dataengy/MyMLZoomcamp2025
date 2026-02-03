@@ -151,6 +151,50 @@ def _write_outputs(df: pd.DataFrame, features: list[str], output_dir: Path, fmt:
     log.info("Wrote processed data to {}", output_dir)
 
 
+def process_data(
+    input_dir: Path,
+    output_dir: Path,
+    sample_size: int | None = None,
+    input_format: str | None = None,
+    output_format: str = "csv",
+) -> dict:
+    parquet_files = list(input_dir.glob("*.parquet"))
+    csv_files = list(input_dir.glob("*.csv"))
+
+    if input_format:
+        fmt = input_format
+        files = parquet_files if fmt == "parquet" else csv_files
+    elif parquet_files:
+        fmt = "parquet"
+        files = parquet_files
+    else:
+        fmt = "csv"
+        files = csv_files
+
+    if not files:
+        log.warning("No input files found in {}", input_dir)
+        raise FileNotFoundError(f"No input files found in {input_dir}")
+
+    df = _load_files(files, fmt)
+    if sample_size and sample_size < len(df):
+        df = df.sample(n=sample_size, random_state=42)
+        log.debug("Sampled {} records", sample_size)
+
+    df = _clean_data(df)
+    df = _engineer_features(df)
+    model_df, features = _select_features(df)
+    _write_outputs(model_df, features, output_dir, output_format)
+
+    return {
+        "processed_path": str(output_dir / f"processed_data.{output_format}"),
+        "features_path": str(output_dir / "features.txt"),
+        "summary_path": str(output_dir / "data_summary.txt"),
+        "rows": int(len(model_df)),
+        "features": features,
+        "target": "trip_duration",
+    }
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Process NYC Taxi data for ML")
     parser.add_argument(
@@ -188,32 +232,16 @@ def main(argv: list[str] | None = None) -> int:
     configure_logging()
     args = parse_args(argv)
     log.debug("Parsed args: {}", args)
-    parquet_files = list(args.input_dir.glob("*.parquet"))
-    csv_files = list(args.input_dir.glob("*.csv"))
-
-    if args.input_format:
-        fmt = args.input_format
-        files = parquet_files if fmt == "parquet" else csv_files
-    elif parquet_files:
-        fmt = "parquet"
-        files = parquet_files
-    else:
-        fmt = "csv"
-        files = csv_files
-
-    if not files:
-        log.warning("No input files found in {}", args.input_dir)
+    try:
+        process_data(
+            input_dir=args.input_dir,
+            output_dir=args.output_dir,
+            sample_size=args.sample_size,
+            input_format=args.input_format,
+            output_format=args.output_format,
+        )
+    except FileNotFoundError:
         return 1
-
-    df = _load_files(files, fmt)
-    if args.sample_size and args.sample_size < len(df):
-        df = df.sample(n=args.sample_size, random_state=42)
-        log.debug("Sampled {} records", args.sample_size)
-
-    df = _clean_data(df)
-    df = _engineer_features(df)
-    model_df, features = _select_features(df)
-    _write_outputs(model_df, features, args.output_dir, args.output_format)
     log.info("Processed data saved to {}", args.output_dir)
     return 0
 

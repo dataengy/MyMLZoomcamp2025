@@ -7,9 +7,38 @@ UV_SYNC_FLAGS="${UV_SYNC_FLAGS:---frozen}"
 ALLOW_DIRENV="${ALLOW_DIRENV:-0}"
 RUN_DIR="${RUN_DIR:-$PROJECT_ROOT/.run}"
 export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$RUN_DIR/.venv}"
+DRY_RUN=0
 
 # shellcheck disable=SC1091
 . "$PROJECT_ROOT/scripts/utils/utils.sh"
+
+usage() {
+  cat <<'USAGE'
+Usage: ./scripts/setup.sh [--dry-run]
+
+Options:
+  --dry-run   Print the actions without installing tools or syncing dependencies.
+  -h, --help  Show this help message.
+USAGE
+}
+
+parse_args() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --dry-run)
+        DRY_RUN=1
+        shift
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *)
+        fail "Unknown option: $1"
+        ;;
+    esac
+  done
+}
 
 ensure_path_for_uv() {
   if have uv; then
@@ -56,6 +85,11 @@ install_tools() {
 }
 
 main() {
+  parse_args "$@"
+  if [ "$DRY_RUN" = "1" ]; then
+    log "Dry run: skipping tool installation and dependency sync."
+    return 0
+  fi
   install_tools
   ensure_path_for_uv
 

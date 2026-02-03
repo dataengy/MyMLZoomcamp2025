@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
 pytest.importorskip("pandas")
+pytest.importorskip("sklearn")
+
+import joblib
+from sklearn.dummy import DummyRegressor
 
 from training.evaluate import main
 
@@ -20,9 +23,19 @@ def test_evaluate_writes_metrics(tmp_path: Path, monkeypatch) -> None:
 
     model_dir = tmp_path / "models"
     model_dir.mkdir()
-    model_path = model_dir / "model.json"
-    model_path.write_text(
-        json.dumps({"type": "mean_baseline", "target": "trip_duration", "target_mean": 600.0})
+    model_path = model_dir / "model.joblib"
+    features = ["trip_distance", "passenger_count"]
+    model = DummyRegressor(strategy="mean")
+    model.fit([[1.0, 1.0], [2.0, 2.0]], [600.0, 900.0])
+    joblib.dump(
+        {
+            "model": model,
+            "features": features,
+            "target": "trip_duration",
+            "model_type": "dummy",
+            "params": {},
+        },
+        model_path,
     )
 
     output_path = tmp_path / ".run" / "reports" / "evaluation.json"

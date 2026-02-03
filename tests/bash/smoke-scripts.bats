@@ -4,9 +4,11 @@
 
 # ---------------------------------------------------------------------------- #
 # Helpers
+# Set PROJECT_ROOT env var before running, or run bats from the project root:
+#   PROJECT_ROOT=$(pwd) bats tests/bash/smoke-*.bats
 # ---------------------------------------------------------------------------- #
 
-PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILE")/../../" && pwd)"
+: "${PROJECT_ROOT:=$(pwd)}"
 
 # ---------------------------------------------------------------------------- #
 # docker-start.sh — CLI help
@@ -21,7 +23,7 @@ PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILE")/../../" && pwd)"
 }
 
 # ---------------------------------------------------------------------------- #
-# doctor health-check — help flag
+# doctor health-check — help flag and run
 # ---------------------------------------------------------------------------- #
 
 @test "health-check doctor script --help exits 0" {
@@ -33,14 +35,13 @@ PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILE")/../../" && pwd)"
 
 @test "health-check doctor script runs and reports status" {
     run bash "$PROJECT_ROOT/scripts/doctor/loc-02-project-health-check.sh" --verbose
-    # Script exits 0 when all checks pass, or 1 when issues found — both are acceptable smoke outcomes.
-    # What matters: it ran without crashing (exit codes 0 or 1 only).
+    # exit 0 = all ok, exit 1 = issues found — both valid for a smoke test.
     [[ $status -eq 0 ]] || [[ $status -eq 1 ]]
     [[ "$output" == *"Project Health Check"* ]]
 }
 
 # ---------------------------------------------------------------------------- #
-# Makefile — target existence (dry-run, no side-effects)
+# Makefile — target existence via dry-run (no side-effects)
 # ---------------------------------------------------------------------------- #
 
 @test "make train --dry-run includes PYTHONPATH=src" {
@@ -68,7 +69,7 @@ PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILE")/../../" && pwd)"
 }
 
 # ---------------------------------------------------------------------------- #
-# pyproject.toml — sanity checks via Python (single-line evals)
+# pyproject.toml — sanity checks
 # ---------------------------------------------------------------------------- #
 
 @test "pyproject.toml declares python >= 3.13" {

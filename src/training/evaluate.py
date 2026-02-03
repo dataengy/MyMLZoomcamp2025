@@ -4,7 +4,9 @@ import argparse
 import json
 from pathlib import Path
 
+import joblib
 import pandas as pd
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from config.logging import configure_logging, log
 from config.paths import REPORTS_DIR
@@ -30,35 +32,47 @@ def _load_data(path: Path) -> pd.DataFrame:
     raise ValueError(f"Unsupported data format: {fmt}")
 
 
-def evaluate_mean_baseline(data_path: Path, model_path: Path) -> dict:
+def _compute_metrics(y_true, y_pred) -> dict:
+    return {
+        "mae": float(mean_absolute_error(y_true, y_pred)),
+        "rmse": float(mean_squared_error(y_true, y_pred, squared=False)),
+        "r2": float(r2_score(y_true, y_pred)),
+        "samples": int(len(y_true)),
+    }
+
+
+def evaluate_model(data_path: Path, model_path: Path) -> dict:
     if not data_path.exists():
         raise FileNotFoundError(f"Data file not found: {data_path}")
     if not model_path.exists():
         raise FileNotFoundError(f"Model file not found: {model_path}")
 
     df = _load_data(data_path)
-    model = json.loads(model_path.read_text())
-    target = model.get("target", "trip_duration")
+    model_bundle = joblib.load(model_path)
+    target = model_bundle.get("target", "trip_duration")
+    features = model_bundle.get("features")
     if target not in df.columns:
         raise ValueError(f"Missing target column: {target}")
+    if not features:
+        raise ValueError("Model bundle missing feature list.")
 
-    mean_value = float(model["target_mean"])
-    target_values = df[target]
-    mae = float((target_values - mean_value).abs().mean())
-    rmse = float(((target_values - mean_value) ** 2).mean() ** 0.5)
+    X = df[features]
+    y = df[target]
+    preds = model_bundle["model"].predict(X)
+    metrics = _compute_metrics(y, preds)
 
     log.info("Evaluation complete (rows={})", len(df))
-
     return {
-        "mae": mae,
-        "rmse": rmse,
-        "samples": int(len(df)),
-        "model_type": model.get("type", "unknown"),
+        "model_type": model_bundle.get("model_type", "unknown"),
+        "params": model_bundle.get("params", {}),
+        "metrics": metrics,
+        "target": target,
+        "features": features,
     }
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Evaluate a baseline model.")
+    parser = argparse.ArgumentParser(description="Evaluate a trained model.")
     parser.add_argument(
         "--data",
         type=Path,
@@ -68,8 +82,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--model",
         type=Path,
-        default=Path("models/model.json"),
-        help="Path to model metadata",
+        default=Path("models/model.joblib"),
+        help="Path to model bundle",
     )
     parser.add_argument(
         "--output",
@@ -80,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     log.info("Starting evaluation")
-    metrics = evaluate_mean_baseline(args.data, args.model)
+    metrics = evaluate_model(args.data, args.model)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(metrics, indent=2))
     log.info("Saved evaluation metrics to {}", args.output)

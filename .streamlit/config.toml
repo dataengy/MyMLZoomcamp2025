@@ -1,13 +1,1 @@
-[server]
-headless = true
-port = 8501
-address = "0.0.0.0"
-enableCORS = false
-enableXsrfProtection = false
-
-[theme]
-base = "light"
-primaryColor = "#2563eb"
-backgroundColor = "#f8fafc"
-secondaryBackgroundColor = "#ffffff"
-textColor = "#0f172a"
+../config/streamlit-config.toml

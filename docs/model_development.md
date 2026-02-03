@@ -45,9 +45,9 @@ models/
 
 ## Evaluation Reports
 
-Metrics and visualizations are saved to [`.run/reports/`](../.run/reports/):
+Metrics and visualizations are saved to [`reports/`](../reports/):
 ```
-.run/reports/
+reports/
 ├── metrics.json          # Model performance metrics
 ├── confusion_matrix.png  # Classification reports
 └── feature_importance.png

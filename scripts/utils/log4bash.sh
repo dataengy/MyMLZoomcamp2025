@@ -14,6 +14,36 @@ log_level_num() {
   esac
 }
 
+log_level_emoji() {
+  case "$1" in
+    DEBUG) echo "🐛" ;;
+    INFO) echo "ℹ️" ;;
+    WARN) echo "⚠️" ;;
+    ERROR) echo "❌" ;;
+    *) echo "•" ;;
+  esac
+}
+
+log_place() {
+  if [[ -n "${LOG_PLACE:-}" ]]; then
+    echo "$LOG_PLACE"
+    return
+  fi
+  local src="${BASH_SOURCE[2]:-}"
+  local line="${BASH_LINENO[1]:-}"
+  local base=""
+  if [[ -n "$src" && -n "$line" ]]; then
+    base=$(basename -- "$src")
+    printf '%s:%s\n' "$base" "$line"
+    return
+  fi
+  if [[ -n "$src" ]]; then
+    basename -- "$src"
+    return
+  fi
+  echo "-"
+}
+
 log_enabled() {
   [[ "$(log_level_num "$1")" -ge "$(log_level_num "$LOG_LEVEL")" ]]
 }
@@ -22,8 +52,12 @@ log_emit() {
   local level="$1"
   shift
   local ts
-  ts=$(date "+%Y-%m-%d %H:%M:%S")
-  printf '%s | %-5s | %s\n' "$ts" "$level" "$*"
+  local emoji
+  local place
+  ts=$(date "+%y/%m/%d %H:%M:%S")
+  emoji=$(log_level_emoji "$level")
+  place=$(log_place)
+  printf '%s %s %s %s\n' "$ts" "$emoji" "$place" "$*"
 }
 
 log_debug() { log_enabled DEBUG && log_emit DEBUG "$*"; }

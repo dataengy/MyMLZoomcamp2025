@@ -21,12 +21,12 @@ def test_training_writes_baseline_artifacts(tmp_path: Path, monkeypatch) -> None
             "--data",
             str(data_path),
             "--model-out",
-            "models/model.json",
+            "models/model.joblib",
             "--metrics-out",
             ".run/reports/metrics.json",
         ]
     )
 
     assert exit_code == 0
-    assert (tmp_path / "models" / "model.json").exists()
+    assert (tmp_path / "models" / "model.joblib").exists()
     assert (tmp_path / ".run" / "reports" / "metrics.json").exists()

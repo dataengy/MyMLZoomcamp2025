@@ -185,7 +185,7 @@ Justfile
 /.tmp_dagster_home_*
 /.run/
 
-/logs/
+/.stash/logs/
 /data/raw/
 /data/processed/
 /models/

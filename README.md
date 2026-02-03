@@ -1,6 +1,15 @@
 # MyMLZoomcamp2025
 
-Small ML project scaffold with a FastAPI service, Dagster stubs, Docker support, and data scripts.
+Small ML project scaffold with a FastAPI service, Dagster pipeline, Docker support, and data scripts.
+
+## Problem statement
+
+Predict NYC taxi trip duration (seconds) from trip metadata. This is a regression task trained on NYC TLC
+Yellow Taxi trip records. Features are generated from pickup/dropoff timestamps, distances, passenger
+counts, and location IDs.
+
+Default dataset: NYC TLC Yellow Taxi (parquet). The pipeline can download data or generate a synthetic
+sample if downloads are disabled.
 
 ## Quick start
 
@@ -26,8 +35,10 @@ Notes:
 - API tests require `fastapi` (installed via project deps).
 - Orchestration tests require `dagster` (installed via project deps).
 - Docker test is skipped unless `DOCKER_TESTS=1` and Docker is available.
-- Environment variables live in [`config/.env`](config/.env) (copy from [`config/.env.demo`](config/.env.demo)).
+- Environment variables live in [`config/.env`](config/.env) (sync from [`config/.env.demo`](config/.env.demo)).
+- Use `scripts/env-render.py --interactive` to update `config/.env`, and `scripts/env-check.py` to verify sync.
 - Logging is configured via [`config/config.yml`](config/config.yml) and `LOG_LEVEL` in [`config/.env`](config/.env).
+- Set `LOG_FORMAT=short` for compact emoji logs (`yy/mm/dd hh:mm:ss` + emoji + place + message).
 
 ## Jupyter Notebooks
 
@@ -171,6 +182,17 @@ Use the scripts below for data setup and sanity checks:
 - [`tests/bash/simple_ml_test.py`](tests/bash/simple_ml_test.py) - train a tiny linear model on processed synthetic data.
 
 Use [`scripts/data_tools/load_data.py`](scripts/data_tools/load_data.py) to load datasets like NYC Taxi parquet/csv/json files from a URL or local path.
+
+Pipeline defaults:
+- Raw data dir: `data/raw`
+- Processed data dir: `data/processed`
+- Model path: `models/model.joblib`
+- Metrics: `reports/metrics.json` and `reports/evaluation.json`
+
+Dagster environment overrides:
+- `ALLOW_DOWNLOAD=1` to fetch NYC TLC data when raw files are missing.
+- `DATA_YEAR`, `DATA_MONTHS` (comma-separated), `DATA_TYPE` to control downloads.
+- `PROCESSED_DATA_DIR`, `MODEL_PATH`, `OUTPUT_FORMAT`, `SAMPLE_SIZE` for custom paths and sampling.
 
 Examples:
 

@@ -4,10 +4,13 @@
 
 # ---------------------------------------------------------------------------- #
 # Helpers
+# Set PROJECT_ROOT env var before running, or run bats from the project root:
+#   PROJECT_ROOT=$(pwd) bats tests/bash/smoke-*.bats
 # ---------------------------------------------------------------------------- #
 
-PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILE")/../../" && pwd)"
+: "${PROJECT_ROOT:=$(pwd)}"
 LOG4BASH="$PROJECT_ROOT/scripts/utils/log4bash.sh"
+LOG4SH="$PROJECT_ROOT/scripts/utils/log4sh.sh"
 UTILS="$PROJECT_ROOT/scripts/utils/utils.sh"
 
 # ---------------------------------------------------------------------------- #
@@ -38,36 +41,50 @@ UTILS="$PROJECT_ROOT/scripts/utils/utils.sh"
     [[ $status -eq 0 ]]
 }
 
-@test "log_info outputs timestamp and INFO label" {
-    run bash -c "LOG_LEVEL=DEBUG source '$LOG4BASH'; log_info 'hello world'"
+@test "log_info outputs short format with emoji" {
+    run env LOG_LEVEL=DEBUG bash -c "source '$LOG4BASH'; log_info 'hello world'"
     [[ $status -eq 0 ]]
-    [[ "$output" == *"INFO"* ]]
+    [[ "$output" =~ ^[0-9]{2}/[0-9]{2}/[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2} ]]
+    [[ "$output" == *"ℹ"* ]]
     [[ "$output" == *"hello world"* ]]
 }
 
 @test "log_debug is suppressed when LOG_LEVEL=INFO" {
-    run bash -c "LOG_LEVEL=INFO source '$LOG4BASH'; log_debug 'should not appear'"
-    [[ $status -eq 0 ]]
+    run env LOG_LEVEL=INFO bash -c "source '$LOG4BASH'; set +e; log_debug 'should not appear'; true"
     [[ "$output" != *"should not appear"* ]]
 }
 
 @test "log_debug is visible when LOG_LEVEL=DEBUG" {
-    run bash -c "LOG_LEVEL=DEBUG source '$LOG4BASH'; log_debug 'visible now'"
+    run env LOG_LEVEL=DEBUG bash -c "source '$LOG4BASH'; log_debug 'visible now'"
     [[ $status -eq 0 ]]
     [[ "$output" == *"visible now"* ]]
 }
 
-@test "log_warn writes to stderr" {
-    run bash -c "LOG_LEVEL=DEBUG source '$LOG4BASH'; log_warn 'watch out' >/dev/null"
-    # log_warn goes to stderr; run captures stderr too
+@test "log_warn writes to stderr and includes WARN label" {
+    run env LOG_LEVEL=DEBUG bash -c "source '$LOG4BASH'; log_warn 'watch out' 2>&1"
     [[ $status -eq 0 ]]
+    [[ "$output" == *"⚠"* ]]
+    [[ "$output" == *"watch out"* ]]
 }
 
 @test "log_error writes to stderr and includes ERROR label" {
-    run bash -c "LOG_LEVEL=DEBUG source '$LOG4BASH'; log_error 'bad thing' 2>&1"
+    run env LOG_LEVEL=DEBUG bash -c "source '$LOG4BASH'; log_error 'bad thing' 2>&1"
     [[ $status -eq 0 ]]
-    [[ "$output" == *"ERROR"* ]]
+    [[ "$output" == *"❌"* ]]
     [[ "$output" == *"bad thing"* ]]
+}
+
+@test "log4sh.sh is sourceable" {
+    run sh -c ". '$LOG4SH'"
+    [[ $status -eq 0 ]]
+}
+
+@test "log4sh info outputs short format with emoji" {
+    run env LOG_LEVEL=INFO sh -c ". '$LOG4SH'; log_info 'sh hello'"
+    [[ $status -eq 0 ]]
+    [[ "$output" =~ ^[0-9]{2}/[0-9]{2}/[0-9]{2}[[:space:]][0-9]{2}:[0-9]{2}:[0-9]{2} ]]
+    [[ "$output" == *"ℹ"* ]]
+    [[ "$output" == *"sh hello"* ]]
 }
 
 # ---------------------------------------------------------------------------- #
@@ -108,15 +125,15 @@ UTILS="$PROJECT_ROOT/scripts/utils/utils.sh"
 }
 
 # ---------------------------------------------------------------------------- #
-# log_enabled threshold logic (integration of level checks)
+# log_enabled threshold logic
 # ---------------------------------------------------------------------------- #
 
 @test "log_enabled returns true when threshold is met" {
-    run bash -c "LOG_LEVEL=DEBUG source '$LOG4BASH'; log_enabled INFO"
+    run env LOG_LEVEL=DEBUG bash -c "source '$LOG4BASH'; log_enabled INFO"
     [[ $status -eq 0 ]]
 }
 
 @test "log_enabled returns false when threshold is not met" {
-    run bash -c "LOG_LEVEL=WARN source '$LOG4BASH'; log_enabled DEBUG"
+    run env LOG_LEVEL=WARN bash -c "source '$LOG4BASH'; set +e; log_enabled DEBUG"
     [[ $status -ne 0 ]]
 }

@@ -2,7 +2,7 @@
 # For complex recipes with arguments, see Justfile
 # For detailed scripts, see scripts/
 
-.PHONY: all clean setup lint lint-notebooks format format-python format-shell format-yaml format-just format-hooks test test-notebooks test-notebooks-sanitized qa-all train serve run-dags streamlit jupyter docker-build docker-up up
+.PHONY: all clean setup env-check lint lint-notebooks format format-python format-shell format-yaml format-just format-hooks test test-notebooks test-notebooks-sanitized qa-all train serve run-dags streamlit jupyter docker-build docker-up up
 
 # ============================================================================
 # Configuration
@@ -14,6 +14,10 @@ export LOG_LEVEL
 # ============================================================================
 # Setup and Initialization
 # ============================================================================
+
+# Check that config/.env matches config/.env.demo
+env-check:
+	uv run python scripts/env-check.py
 
 # Initial project setup (dependencies, git hooks, etc.)
 setup:

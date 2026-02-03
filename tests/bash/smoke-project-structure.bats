@@ -4,9 +4,11 @@
 
 # ---------------------------------------------------------------------------- #
 # Helpers
+# Set PROJECT_ROOT env var before running, or run bats from the project root:
+#   PROJECT_ROOT=$(pwd) bats tests/bash/smoke-*.bats
 # ---------------------------------------------------------------------------- #
 
-PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILE")/../../" && pwd)"
+: "${PROJECT_ROOT:=$(pwd)}"
 
 # ---------------------------------------------------------------------------- #
 # Directory layout
@@ -48,9 +50,9 @@ PROJECT_ROOT="$(cd "$(dirname "$BATS_TEST_FILE")/../../" && pwd)"
     [[ -d "$PROJECT_ROOT/tests/integration" ]]
 }
 
-@test "tests/bash/ has standalone test scripts" {
-    [[ -f "$PROJECT_ROOT/tests/bash/simple_data_test.py" ]]
-    [[ -f "$PROJECT_ROOT/tests/bash/simple_ml_test.py" ]]
+@test "scripts/tests/ has standalone test scripts" {
+    [[ -f "$PROJECT_ROOT/scripts/tests/simple_data_test.py" ]]
+    [[ -f "$PROJECT_ROOT/scripts/tests/simple_ml_test.py" ]]
 }
 
 @test "deploy/ has Dockerfile and docker-compose.yml" {

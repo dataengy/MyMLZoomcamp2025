@@ -88,7 +88,9 @@ Not currently implemented. For production, consider adding rate limiting to prev
 
 ## Monitoring
 
-TODO: Add monitoring and observability setup documentation.
+Logging is configured via `config/config.yml` and supports a short format with emojis
+(`LOG_FORMAT=short`). For alerting, metrics, and tracing updates, use the `/sre`
+skill in `.ai/skills/sre-observability/` and document changes here.
 
 ## See Also
 

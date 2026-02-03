@@ -74,11 +74,11 @@ data-process:
 
 # Quick data validation test
 data-test:
-    uv run python tests/bash/simple_data_test.py
+    uv run python scripts/tests/simple_data_test.py
 
 # Quick ML pipeline test
 ml-test:
-    uv run python tests/bash/simple_ml_test.py
+    uv run python scripts/tests/simple_ml_test.py
 
 # Evaluate trained model performance
 evaluate:
@@ -108,6 +108,10 @@ deploy-local:
 # ============================================================================
 # Testing
 # ============================================================================
+
+# Verify config/.env matches config/.env.demo
+env-check:
+    uv run python scripts/env-check.py
 
 # Fast test run (quiet mode)
 test-fast:

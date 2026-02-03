@@ -1,42 +1,136 @@
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass
+from pathlib import Path
 
+import pandas as pd
 from dagster import Definitions, asset, define_asset_job
 
 from config.paths import REPORTS_DIR
+from scripts.data_tools.download_data import download_files, resolve_months
+from scripts.data_tools.process_data import process_data
+from training.evaluate import evaluate_model
+from training.train import train_model
 
 
 @dataclass(frozen=True)
 class TrainingArtifacts:
     model_path: str
     metrics_path: str
+    evaluation_path: str
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "y"}
+
+
+def _parse_months(value: str) -> list[int]:
+    return [int(item.strip()) for item in value.split(",") if item.strip()]
+
+
+def _write_synthetic_raw(output_dir: Path) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "synthetic_taxi.csv"
+    if path.exists():
+        return path
+
+    now = pd.Timestamp.utcnow().floor("h")
+    rows = 50
+    data = {
+        "tpep_pickup_datetime": [now - pd.Timedelta(minutes=15 * i) for i in range(rows)],
+        "tpep_dropoff_datetime": [now - pd.Timedelta(minutes=15 * i - 10) for i in range(rows)],
+        "passenger_count": [1 + (i % 3) for i in range(rows)],
+        "trip_distance": [0.5 + (i % 10) * 0.7 for i in range(rows)],
+        "fare_amount": [5.0 + (i % 10) * 2.5 for i in range(rows)],
+        "PULocationID": [132 + (i % 5) for i in range(rows)],
+        "DOLocationID": [138 + (i % 5) for i in range(rows)],
+    }
+    pd.DataFrame(data).to_csv(path, index=False)
+    return path
 
 
 @asset
 def raw_data() -> dict:
-    """Stub raw data ingestion."""
-    return {"status": "placeholder", "rows": 0}
+    raw_dir = Path(os.getenv("RAW_DATA_DIR", "data/raw"))
+    data_type = os.getenv("DATA_TYPE", "yellow_tripdata")
+    year = int(os.getenv("DATA_YEAR", "2024"))
+    months = _parse_months(os.getenv("DATA_MONTHS", "1,2,3"))
+    allow_download = _env_bool("ALLOW_DOWNLOAD", default=False)
+    sample = _env_bool("DATA_SAMPLE", default=False)
+
+    existing_files = list(raw_dir.glob("*.parquet")) + list(raw_dir.glob("*.csv"))
+    if existing_files:
+        return {"status": "ready", "files": [str(path) for path in existing_files]}
+
+    if allow_download:
+        selected_months = resolve_months(months, sample)
+        downloaded, skipped = download_files(
+            data_type=data_type,
+            year=year,
+            months=selected_months,
+            output_dir=raw_dir,
+            force=False,
+        )
+        return {
+            "status": "downloaded",
+            "files": [str(path) for path in downloaded + skipped],
+        }
+
+    synthetic_path = _write_synthetic_raw(raw_dir)
+    return {"status": "synthetic", "files": [str(synthetic_path)]}
 
 
 @asset
 def prepared_data(raw_data: dict) -> dict:
-    """Stub feature prep step."""
-    return {"status": "placeholder", "source": raw_data}
+    _ = raw_data
+    input_dir = Path(os.getenv("RAW_DATA_DIR", "data/raw"))
+    output_dir = Path(os.getenv("PROCESSED_DATA_DIR", "data/processed"))
+    sample_size = os.getenv("SAMPLE_SIZE")
+    sample_size_int = int(sample_size) if sample_size else None
+    output_format = os.getenv("OUTPUT_FORMAT", "csv")
+
+    result = process_data(
+        input_dir=input_dir,
+        output_dir=output_dir,
+        sample_size=sample_size_int,
+        output_format=output_format,
+    )
+    result["status"] = "prepared"
+    return result
 
 
 @asset
 def trained_model(prepared_data: dict) -> TrainingArtifacts:
-    """Stub training step."""
-    _ = prepared_data
+    data_path = Path(prepared_data["processed_path"])
+    model_path = Path(os.getenv("MODEL_PATH", "models/model.joblib"))
     metrics_path = REPORTS_DIR / "metrics.json"
-    return TrainingArtifacts(model_path="models/model.json", metrics_path=str(metrics_path))
+    train_model(
+        data_path=data_path,
+        model_out=model_path,
+        metrics_out=metrics_path,
+    )
+    evaluation_path = REPORTS_DIR / "evaluation.json"
+    return TrainingArtifacts(
+        model_path=str(model_path),
+        metrics_path=str(metrics_path),
+        evaluation_path=str(evaluation_path),
+    )
 
 
 @asset
-def evaluation_report(trained_model: TrainingArtifacts) -> dict:
-    """Stub evaluation step."""
-    return {"status": "placeholder", "artifacts": trained_model}
+def evaluation_report(prepared_data: dict, trained_model: TrainingArtifacts) -> dict:
+    data_path = Path(prepared_data["processed_path"])
+    output_path = Path(trained_model.evaluation_path)
+    metrics = evaluate_model(data_path, Path(trained_model.model_path))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(metrics, indent=2))
+    metrics["status"] = "evaluated"
+    return metrics
 
 
 training_job = define_asset_job("training_job")

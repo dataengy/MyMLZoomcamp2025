@@ -3,6 +3,8 @@ logging:
     level: INFO
     format: '<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> -
         <level>{message}</level>'
+    format_short: '{time:YY/MM/DD HH:mm:ss} {level.icon} {name}:{function}:{line} {message}'
+    format_style: long
     colorize: true
     backtrace: true
     diagnose: false
@@ -14,3 +16,16 @@ logging:
 
 shell_logging:
     level: INFO
+
+
+#     level: INFO
+#    format: '<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> -
+#        <level>{message}</level>'
+#    colorize: true
+#    backtrace: true
+#    diagnose: false
+#    file:
+#        path: .run/logs/app.log
+#        level: INFO
+#        rotation: 10 MB
+#        retention: 10 days

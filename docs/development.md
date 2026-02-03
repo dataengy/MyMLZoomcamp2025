@@ -27,13 +27,19 @@ ALLOW_DIRENV=1 ./scripts/setup.sh
 
 ### 2. Configuration
 
-Copy environment template:
+Sync environment template:
 ```bash
-cp config/.env.demo config/.env
+./scripts/env-render.py --interactive
+```
+
+Verify sync:
+```bash
+./scripts/env-check.py
 ```
 
 Edit [`config/.env`](../config/.env) with your settings:
 - `LOG_LEVEL` - Logging level (DEBUG, INFO, WARNING, ERROR)
+- `LOG_FORMAT` - Log format style (`long` or `short` with emoji + place)
 - `JUPYTER_TOKEN` - Jupyter Lab security token
 - `STREAMLIT_DATA_PATH` - Data path for Streamlit
 
@@ -173,6 +179,8 @@ Shell into container:
 ├── data/             # Data storage
 ├── models/           # Saved models
 └── .run/             # Runtime outputs (reports, logs, dagster, venv)
+
+Note: The project uses a single virtual environment at `./.run/.venv` (no root `.venv`).
 ```
 
 ## Common Tasks

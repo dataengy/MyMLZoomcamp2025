@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,24 @@ from loguru import logger
 log = logger
 
 _CONFIGURED = False
+_DEFAULT_LONG_FORMAT = (
+    "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}"
+)
+_DEFAULT_SHORT_FORMAT = "{time:YY/MM/DD HH:mm:ss} {level.icon} {name}:{function}:{line} {message}"
+
+
+def _parse_bool(value: Any, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"1", "true", "yes", "y", "on"}:
+            return True
+        if lowered in {"0", "false", "no", "n", "off"}:
+            return False
+    return default
 
 
 def _load_config(path: Path) -> dict[str, Any]:
@@ -33,13 +52,15 @@ def configure_logging(config_path: Path | None = None) -> None:
 
     raw_level = os.environ.get("LOG_LEVEL", log_cfg.get("level", "DEBUG"))
     level = raw_level.upper() if isinstance(raw_level, str) else raw_level
-    fmt = log_cfg.get(
-        "format",
-        "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
-    )
+    format_style = os.environ.get("LOG_FORMAT", log_cfg.get("format_style", "long"))
+    format_style = format_style.lower() if isinstance(format_style, str) else "long"
+    fmt_long = log_cfg.get("format", _DEFAULT_LONG_FORMAT)
+    fmt_short = log_cfg.get("format_short", _DEFAULT_SHORT_FORMAT)
+    fmt: str | Callable[[dict[str, Any]], str] = fmt_short if format_style == "short" else fmt_long
     colorize = bool(log_cfg.get("colorize", True))
     backtrace = bool(log_cfg.get("backtrace", True))
     diagnose = bool(log_cfg.get("diagnose", False))
+    enqueue = _parse_bool(os.environ.get("LOG_ENQUEUE", log_cfg.get("enqueue", True)), True)
 
     log.remove()
     log.add(
@@ -49,7 +70,7 @@ def configure_logging(config_path: Path | None = None) -> None:
         colorize=colorize,
         backtrace=backtrace,
         diagnose=diagnose,
-        enqueue=True,
+        enqueue=enqueue,
     )
 
     file_cfg = log_cfg.get("file") if isinstance(log_cfg, dict) else None
@@ -65,7 +86,7 @@ def configure_logging(config_path: Path | None = None) -> None:
             format=fmt,
             rotation=file_cfg.get("rotation"),
             retention=file_cfg.get("retention"),
-            enqueue=True,
+            enqueue=enqueue,
         )
 
     _CONFIGURED = True
