@@ -52,19 +52,19 @@ up: docker-up
 
 # Pipeline steps
 data:
-	@bash -c 'source scripts/Makefile-utils.sh && run_data'
+	@bash -c 'source scripts/utils/Makefile-utils.sh && run_data'
 
 data-download:
-	uv run python scripts/download_data.py
+	uv run python scripts/data_tools/download_data.py
 
 data-process:
-	uv run python scripts/process_data.py
+	uv run python scripts/data_tools/process_data.py
 
 data-test:
-	uv run python scripts/simple_data_test.py
+	uv run python tests/bash/simple_data_test.py
 
 ml-test:
-	uv run python scripts/simple_ml_test.py
+	uv run python tests/bash/simple_ml_test.py
 
 evaluate:
 	uv run python src/training/evaluate.py
