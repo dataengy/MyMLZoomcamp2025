@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -11,7 +9,7 @@ app = FastAPI(title="MyMLZoomcamp2025 API")
 
 
 class PredictRequest(BaseModel):
-    features: List[float]
+    features: list[float]
 
 
 class PredictResponse(BaseModel):

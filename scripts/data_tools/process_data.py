@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import pandas as pd
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_PATH = PROJECT_ROOT / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
@@ -25,9 +25,7 @@ def _load_files(files: Iterable[Path], fmt: str) -> pd.DataFrame:
             import duckdb
 
             with duckdb.connect() as conn:
-                frames.append(
-                    conn.execute("SELECT * FROM read_parquet(?)", [str(path)]).df()
-                )
+                frames.append(conn.execute("SELECT * FROM read_parquet(?)", [str(path)]).df())
         elif fmt == "csv":
             frames.append(pd.read_csv(path))
         else:
@@ -95,9 +93,7 @@ def _engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         df["is_airport_pickup"] = df["PULocationID"].isin(airport_locations).astype(int)
     if "DOLocationID" in df.columns:
         airport_locations = [132, 138, 161]
-        df["is_airport_dropoff"] = (
-            df["DOLocationID"].isin(airport_locations).astype(int)
-        )
+        df["is_airport_dropoff"] = df["DOLocationID"].isin(airport_locations).astype(int)
 
     rush_hours = [7, 8, 9, 17, 18, 19]
     df["is_rush_hour"] = df["pickup_hour"].isin(rush_hours).astype(int)
@@ -126,9 +122,7 @@ def _select_features(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     return model_df, feature_columns
 
 
-def _write_outputs(
-    df: pd.DataFrame, features: list[str], output_dir: Path, fmt: str
-) -> None:
+def _write_outputs(df: pd.DataFrame, features: list[str], output_dir: Path, fmt: str) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     data_path = output_dir / f"processed_data.{fmt}"
     if fmt == "parquet":

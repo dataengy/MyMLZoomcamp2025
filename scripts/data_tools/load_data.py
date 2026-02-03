@@ -3,15 +3,16 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 if TYPE_CHECKING:
     import pandas as pd
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_PATH = PROJECT_ROOT / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
@@ -85,7 +86,7 @@ def _normalize_columns(value: str | None) -> list[str] | None:
 
 def _read_dataframe(
     path: Path, fmt: str, columns: Iterable[str] | None, nrows: int | None
-) -> "pd.DataFrame":
+) -> pd.DataFrame:
     import pandas as pd
 
     if fmt == "csv":
@@ -97,7 +98,7 @@ def _read_dataframe(
     raise ValueError(f"Unsupported format: {fmt}")
 
 
-def _write_dataframe(df: "pd.DataFrame", output: Path, fmt: str) -> None:
+def _write_dataframe(df: pd.DataFrame, output: Path, fmt: str) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     if fmt == "csv":
         df.to_csv(output, index=False)
@@ -208,9 +209,7 @@ def main() -> None:
 
     df = _read_dataframe(source_path, fmt, columns, args.nrows)
 
-    log.info(
-        "Loaded {} rows x {} columns from {}", len(df), len(df.columns), source_path
-    )
+    log.info("Loaded {} rows x {} columns from {}", len(df), len(df.columns), source_path)
     log.debug("Columns ({}): {}", len(df.columns), _format_columns(list(df.columns)))
 
     if args.show_head:

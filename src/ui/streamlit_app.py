@@ -14,11 +14,7 @@ SAMPLE_ROWS = int(os.getenv("STREAMLIT_SAMPLE_ROWS", "2000"))
 def _list_data_files(root: Path) -> list[Path]:
     if not root.exists():
         return []
-    files = [
-        p
-        for p in root.rglob("*")
-        if p.is_file() and p.suffix.lower() in {".parquet", ".csv"}
-    ]
+    files = [p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in {".parquet", ".csv"}]
     return sorted(files)
 
 

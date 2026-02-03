@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 
 from loguru import logger
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SRC_PATH = PROJECT_ROOT / "src"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
@@ -17,7 +17,6 @@ if str(SRC_PATH) not in sys.path:
 from config.logging import configure_logging  # noqa: E402
 
 NYC_TAXI_BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/"
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data" / "raw"
 DATA_TYPES = ["yellow_tripdata", "green_tripdata", "fhv_tripdata"]
 DEFAULT_DATA_TYPE = "yellow_tripdata"
@@ -25,9 +24,7 @@ DEFAULT_YEAR = 2024
 DEFAULT_MONTHS = [1, 2, 3]
 
 
-def get_data_url(
-    data_type: str, year: int, month: int, base_url: str = NYC_TAXI_BASE_URL
-) -> str:
+def get_data_url(data_type: str, year: int, month: int, base_url: str = NYC_TAXI_BASE_URL) -> str:
     filename = f"{data_type}_{year}-{month:02d}.parquet"
     return urljoin(base_url, filename)
 

@@ -117,9 +117,7 @@ def basic_data_validation(data: list[dict]) -> dict:
             validation_results["valid_records"] += 1
         else:
             validation_results["invalid_records"] += 1
-            validation_results["issues"].extend(
-                [f"Record {i}: {issue}" for issue in issues]
-            )
+            validation_results["issues"].extend([f"Record {i}: {issue}" for issue in issues])
 
     validation_results["validation_passed"] = validation_results["invalid_records"] == 0
 
@@ -208,9 +206,7 @@ def main() -> None:
         sample = enhanced_data[0]
         print("\nEngineered Features (sample):")
         feature_keys = [
-            k
-            for k in sample.keys()
-            if k not in ["tpep_pickup_datetime", "tpep_dropoff_datetime"]
+            k for k in sample.keys() if k not in ["tpep_pickup_datetime", "tpep_dropoff_datetime"]
         ]
         for key in feature_keys[:10]:
             print(f"  {key}: {sample[key]}")

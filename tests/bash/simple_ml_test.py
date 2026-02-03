@@ -9,7 +9,6 @@ import json
 import math
 import random
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 
 class SimpleLinearRegression:
@@ -22,14 +21,12 @@ class SimpleLinearRegression:
 
     def fit(
         self,
-        X: List[List[float]],
-        y: List[float],
-        feature_names: List[str] | None = None,
+        X: list[list[float]],
+        y: list[float],
+        feature_names: list[str] | None = None,
     ) -> None:
         """Train the linear regression model using normal equation."""
-        print(
-            f"Training linear regression on {len(X)} samples with {len(X[0])} features..."
-        )
+        print(f"Training linear regression on {len(X)} samples with {len(X[0])} features...")
 
         self.feature_names = feature_names or [f"feature_{i}" for i in range(len(X[0]))]
 
@@ -48,7 +45,7 @@ class SimpleLinearRegression:
         print(f"  Bias: {self.bias:.4f}")
         print(f"  Weights: {[f'{w:.4f}' for w in self.weights[:3]]}...")
 
-    def predict(self, X: List[List[float]]) -> List[float]:
+    def predict(self, X: list[list[float]]) -> list[float]:
         """Make predictions."""
         if self.weights is None or self.bias is None:
             raise ValueError("Model not trained yet")
@@ -62,14 +59,10 @@ class SimpleLinearRegression:
 
         return predictions
 
-    def _transpose(self, matrix: List[List[float]]) -> List[List[float]]:
-        return [
-            [matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))
-        ]
+    def _transpose(self, matrix: list[list[float]]) -> list[list[float]]:
+        return [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
 
-    def _matrix_multiply(
-        self, A: List[List[float]], B: List[List[float]]
-    ) -> List[List[float]]:
+    def _matrix_multiply(self, A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
         rows_A, cols_A = len(A), len(A[0])
         rows_B, cols_B = len(B), len(B[0])
 
@@ -86,15 +79,15 @@ class SimpleLinearRegression:
         return result
 
     def _matrix_vector_multiply(
-        self, matrix: List[List[float]], vector: List[float]
-    ) -> List[float]:
+        self, matrix: list[list[float]], vector: list[float]
+    ) -> list[float]:
         result = []
         for row in matrix:
             dot_product = sum(row[i] * vector[i] for i in range(len(vector)))
             result.append(dot_product)
         return result
 
-    def _matrix_inverse(self, matrix: List[List[float]]) -> List[List[float]]:
+    def _matrix_inverse(self, matrix: list[list[float]]) -> list[list[float]]:
         n = len(matrix)
         augmented = [row[:] + [0] * n for row in matrix]
         for i in range(n):
@@ -127,7 +120,7 @@ class SimpleLinearRegression:
 
 def load_processed_data(
     filepath: Path,
-) -> Tuple[List[List[float]], List[float], List[str]]:
+) -> tuple[list[list[float]], list[float], list[str]]:
     """Load processed data from CSV."""
     print(f"Loading data from {filepath}...")
 
@@ -177,7 +170,7 @@ def load_processed_data(
     return X, y, feature_columns
 
 
-def calculate_metrics(y_true: List[float], y_pred: List[float]) -> Dict[str, float]:
+def calculate_metrics(y_true: list[float], y_pred: list[float]) -> dict[str, float]:
     """Calculate regression metrics."""
     n = len(y_true)
 
@@ -202,11 +195,11 @@ def calculate_metrics(y_true: List[float], y_pred: List[float]) -> Dict[str, flo
 
 
 def train_test_split(
-    X: List[List[float]],
-    y: List[float],
+    X: list[list[float]],
+    y: list[float],
     test_size: float = 0.2,
     random_seed: int = 42,
-) -> tuple[List[List[float]], List[List[float]], List[float], List[float]]:
+) -> tuple[list[list[float]], list[list[float]], list[float], list[float]]:
     """Simple train/test split."""
     random.seed(random_seed)
 
@@ -228,7 +221,7 @@ def train_test_split(
 
 
 def save_model_info(
-    model: SimpleLinearRegression, metrics: Dict[str, Dict], filepath: Path
+    model: SimpleLinearRegression, metrics: dict[str, dict], filepath: Path
 ) -> None:
     """Save model information as JSON."""
     model_info = {
@@ -263,9 +256,7 @@ def main() -> None:
         print("No valid data loaded")
         return
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_seed=42
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_seed=42)
     print(f"Data split: {len(X_train)} train, {len(X_test)} test samples")
 
     model = SimpleLinearRegression()

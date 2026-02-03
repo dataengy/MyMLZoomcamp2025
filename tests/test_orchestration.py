@@ -24,7 +24,5 @@ def test_dagster_definitions_exist() -> None:
 
 
 def test_dagster_assets_materialize_in_memory() -> None:
-    result = materialize_to_memory(
-        [raw_data, prepared_data, trained_model, evaluation_report]
-    )
+    result = materialize_to_memory([raw_data, prepared_data, trained_model, evaluation_report])
     assert result.success

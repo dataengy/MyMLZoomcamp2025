@@ -27,9 +27,7 @@ def configure_logging(config_path: Path | None = None) -> None:
     if _CONFIGURED:
         return
 
-    config_file = config_path or Path(
-        os.environ.get("CONFIG_PATH", "config/config.yml")
-    )
+    config_file = config_path or Path(os.environ.get("CONFIG_PATH", "config/config.yml"))
     data = _load_config(config_file)
     log_cfg = data.get("logging", {}) if isinstance(data, dict) else {}
 
