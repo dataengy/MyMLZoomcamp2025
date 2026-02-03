@@ -5,6 +5,11 @@ import json
 from pathlib import Path
 
 import pandas as pd
+from loguru import logger
+
+from config.logging import configure_logging
+
+configure_logging()
 
 
 def _infer_format(path: Path) -> str:
@@ -30,6 +35,7 @@ def train_mean_baseline(data_path: Path, target: str = "trip_duration") -> dict:
         raise FileNotFoundError(f"Data file not found: {data_path}")
 
     df = _load_data(data_path)
+    logger.info("Loaded training data (rows={})", len(df))
     if target not in df.columns:
         raise ValueError(f"Missing target column: {target}")
 
@@ -68,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
 
+    logger.info("Starting training run")
     result = train_mean_baseline(args.data)
 
     args.model_out.parent.mkdir(parents=True, exist_ok=True)

@@ -46,19 +46,20 @@ def download_files(
     force: bool,
     base_url: str = NYC_TAXI_BASE_URL,
     downloader=download_file,
-) -> list[Path]:
+) -> tuple[list[Path], list[Path]]:
     output_dir.mkdir(parents=True, exist_ok=True)
     downloaded: list[Path] = []
+    skipped: list[Path] = []
     for month in months:
         url = get_data_url(data_type, year, month, base_url=base_url)
         filename = Path(url).name
         filepath = output_dir / filename
         if filepath.exists() and not force:
-            downloaded.append(filepath)
+            skipped.append(filepath)
             continue
         downloader(url, filepath)
         downloaded.append(filepath)
-    return downloaded
+    return downloaded, skipped
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -104,17 +105,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     months = resolve_months(args.months, args.sample)
-    downloaded = download_files(
+    downloaded, skipped = download_files(
         data_type=args.data_type,
         year=args.year,
         months=months,
         output_dir=args.output_dir,
         force=args.force,
     )
-    if not downloaded:
+    if not downloaded and not skipped:
         print("No files downloaded.")
         return 1
-    print(f"Downloaded {len(downloaded)} files to {args.output_dir}")
+    if downloaded:
+        print(f"Downloaded {len(downloaded)} new files to {args.output_dir}")
+    if skipped:
+        print(f"Skipped {len(skipped)} existing files in {args.output_dir}")
     return 0
 
 

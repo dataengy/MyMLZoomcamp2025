@@ -25,7 +25,7 @@ def test_download_files_skips_existing(tmp_path: Path) -> None:
         filepath.write_text("downloaded")
         return True
 
-    downloaded = download_files(
+    downloaded, skipped = download_files(
         data_type="yellow_tripdata",
         year=2024,
         months=[1],
@@ -35,5 +35,6 @@ def test_download_files_skips_existing(tmp_path: Path) -> None:
         downloader=fake_downloader,
     )
 
-    assert downloaded == [existing]
+    assert downloaded == []
+    assert skipped == [existing]
     assert existing.read_text() == "already"

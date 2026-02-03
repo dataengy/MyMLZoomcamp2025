@@ -3,6 +3,11 @@ from typing import List
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from config.logging import configure_logging
+from loguru import logger
+
+configure_logging()
+
 app = FastAPI(title="MyMLZoomcamp2025 API")
 
 
@@ -16,6 +21,7 @@ class PredictResponse(BaseModel):
 
 @app.get("/health")
 def health() -> dict:
+    logger.info("Health check requested")
     return {"status": "ok"}
 
 
@@ -23,4 +29,5 @@ def health() -> dict:
 def predict(payload: PredictRequest) -> PredictResponse:
     # Placeholder logic until a real model is wired in.
     prediction = float(sum(payload.features))
+    logger.info("Prediction requested (features={})", len(payload.features))
     return PredictResponse(prediction=prediction)

@@ -181,3 +181,10 @@ Justfile
 /data/raw/
 /.ai/
 /.tmp_dagster_home_*
+/data/processed/data_summary.txt
+/data/processed/features.txt
+/data/processed/processed_data.csv
+/models/model.json
+/reports/evaluation.json
+/reports/metrics.json
+/.claude/settings.local.json
