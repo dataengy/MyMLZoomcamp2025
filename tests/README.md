@@ -30,6 +30,26 @@ python -m pytest tests/docker
 bats tests/bash
 ```
 
+
+## Justfile shortcuts
+
+From `tests/`:
+
+```sh
+just help
+just test
+just unit
+just integration
+just docker
+just bats
+```
+
+From the repo root:
+
+```sh
+just -f tests/Justfile test
+```
+
 ## Test environment defaults
 
 `conftest.py` sets default values for test environment variables when they are
