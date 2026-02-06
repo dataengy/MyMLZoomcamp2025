@@ -180,7 +180,6 @@ Justfile
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-/.ai/
 
 /.tmp_dagster_home_*
 /.run/
@@ -191,18 +190,4 @@ Justfile
 /models/
 /reports/
 /.claude/settings.local.json
-/.stash/.bak/scripts/data/raw/yellow_tripdata_2024-01.parquet
-/.stash/.bak/scripts/data/raw/yellow_tripdata_2024-02.parquet
-/.stash/.bak/scripts/data/raw/yellow_tripdata_2024-03.parquet
-/.stash/.bak/README.md
-/.stash/.bak/requirements.txt
-/.stash/.bak/sample.ipynb
-/.stash/.tmp_dagster_home_7no7tb2n/history/runs/.db
-/.stash/.tmp_dagster_home_7no7tb2n/history/runs/.db-shm
-/.stash/.tmp_dagster_home_7no7tb2n/history/runs/.db-wal
-/.stash/.tmp_dagster_home_7no7tb2n/history/runs/index.db
-/.stash/.tmp_dagster_home_7no7tb2n/history/runs.db
-/.stash/.tmp_dagster_home_7no7tb2n/schedules/schedules.db
-/.stash/.bak/backups/.pre-commit-config.yaml.bak
-/.stash/nbstripout.unused
-/.stash/
+/.stash

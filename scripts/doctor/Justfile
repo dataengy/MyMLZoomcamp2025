@@ -1,21 +1,33 @@
-# Run helper scripts for repo maintenance.
+# Run helper scripts for repo maintenance and diagnostics.
 
 set positional-arguments
 
+# Push repository changes to GitHub with guardrails (preflight checks, status, and sync).
+# Pass any extra flags/args through to the underlying script.
 github-push *args:
 	bash "{{justfile_directory()}}/github_push_doctor.sh" {{args}}
 
+# Sync local changes and push in one shot; intended for the loc-01 workflow.
+# Pass any extra flags/args through to the underlying script.
 sync-push *args:
 	bash "{{justfile_directory()}}/loc-01-git-sync-push.sh" {{args}}
 
+# Run the project health checklist (env sanity, deps, and basic repo diagnostics).
+# Pass any extra flags/args through to the underlying script.
 health-check *args:
 	bash "{{justfile_directory()}}/loc-02-project-health-check.sh" {{args}}
 
+# Validate Docker tooling and basic container workflow readiness.
+# Pass any extra flags/args through to the underlying script.
 docker-check *args:
 	bash "{{justfile_directory()}}/loc-03-docker-check.sh" {{args}}
 
+# Run tests in "safe" mode (handles common failure cases and avoids destructive steps).
+# Pass any extra flags/args through to the underlying script.
 test-safe *args:
 	python3 "{{justfile_directory()}}/run-tests-safe.py" {{args}}
 
+# Verify local web tooling prerequisites used by docs/report generators.
+# Pass any extra flags/args through to the underlying script.
 web-tool-check *args:
 	bash "{{justfile_directory()}}/web-tool-check.sh" {{args}}

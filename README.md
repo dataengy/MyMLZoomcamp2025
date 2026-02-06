@@ -142,7 +142,8 @@ Or use the helper [`docker-start.sh`](docker-start.sh):
 
 ## Docker helper script
 
-The [`docker-start.sh`](docker-start.sh) script provides a convenient interface for managing Docker services:
+The [`docker-start.sh`](docker-start.sh) script provides a convenient interface for managing Docker services.
+For full details, see [`docker-start.md`](docker-start.md).
 
 **CLI mode:**
 ```bash

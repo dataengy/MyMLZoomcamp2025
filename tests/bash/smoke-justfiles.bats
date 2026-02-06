@@ -170,3 +170,32 @@
     [[ "$output" == *"scripts/codex/install_local_skills.sh"* ]]
     [[ "$output" == *"--force"* ]]
 }
+
+# ---------------------------------------------------------------------------- #
+# .ai/.codex/Justfile
+# ---------------------------------------------------------------------------- #
+
+@test "ai/codex Justfile help dry-run prints echo lines" {
+    run just -f "$PROJECT_ROOT/.ai/.codex/Justfile" --dry-run help
+    [[ $status -eq 0 ]]
+    [[ "$output" == *"Codex local skill helpers"* ]]
+}
+
+@test "ai/codex Justfile list-local dry-run references local skills dir" {
+    run just -f "$PROJECT_ROOT/.ai/.codex/Justfile" --dry-run list-local
+    [[ $status -eq 0 ]]
+    [[ "$output" == *".ai/.codex/skills"* ]]
+}
+
+@test "ai/codex Justfile install-local dry-run expands to install_local_skills.sh" {
+    run just -f "$PROJECT_ROOT/.ai/.codex/Justfile" --dry-run install-local --list
+    [[ $status -eq 0 ]]
+    [[ "$output" == *"scripts/codex/install_local_skills.sh"* ]]
+    [[ "$output" == *"--list"* ]]
+}
+
+@test "ai/codex Justfile package-all dry-run references package_skill.py" {
+    run just -f "$PROJECT_ROOT/.ai/.codex/Justfile" --dry-run package-all
+    [[ $status -eq 0 ]]
+    [[ "$output" == *".ai/.codex/scripts/package_skill.py"* ]]
+}
